@@ -1,0 +1,21 @@
+:root {
+  --dd-bg:           #cbcbcb;
+  --dd-surface:      #ffffff;
+  --dd-border:       #414141;
+  --dd-border-focus: #9a7a3e;
+  --dd-accent:       #9a7a3e;
+  --dd-accent-dim:   rgba(154, 122, 62, 0.10);
+  --dd-text:         #1c1a16;
+  --dd-text-muted:   #9a9489;
+  --dd-selected-bg:  rgba(154, 122, 62, 0.10);
+  --dd-hover-bg:     rgba(0, 0, 0, 0.04);
+  --dd-shadow:       0 16px 48px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(0, 0, 0, 0.07);
+  --dd-radius:       10px;
+  --dd-font-ui:      'Sora', sans-serif;
+  --dd-font-mono:    'DM Mono', monospace;
+  --dd-transition:   180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

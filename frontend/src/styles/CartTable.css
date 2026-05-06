@@ -1,0 +1,444 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Geist:wght@300;400;500;600&display=swap');
+@import url("../index.css");
+
+/* ── Root ── */
+.cart-root {
+  font-family: 'Geist', sans-serif;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 36px 40px;
+  min-width: 580px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.overlay-spinner {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e2e2;
+  border-top-color: #111111;
+  border-radius: 50%;
+  animation: spinner 0.75s linear infinite;
+}
+
+.overlay-message {
+  font-family: 'Geist', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  color: #111111;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* ── Header ── */
+.cart-title {
+  font-family: 'Lora', serif;
+  color: #111111;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 24px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Table wrapper ── */
+.table-wrapper {
+  width: 100%;
+  height: 42dvh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+}
+
+/* ── Table ── */
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-table tbody {
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.cart-table thead th {
+  background-color: #f7f7f7;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888888;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e2e2;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.cart-table thead th:last-child,
+.cart-table tbody td:last-child {
+  text-align: right;
+}
+
+.cart-table tbody td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #1a1a1a;
+  font-size: 19px;
+  vertical-align: middle;
+}
+
+.cart-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cart-table tbody tr:hover td {
+  background: #fafafa;
+}
+
+/* ── Item cell ── */
+.item-status {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3d9e33;
+  margin-right: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+.item-name {
+  display: block;
+  color: #111111;
+  font-weight: 500;
+  font-size: 19px;
+}
+
+.item-description {
+  display: block;
+  color: #888888;
+  font-size: 16px;
+  margin-top: 3px;
+}
+
+.item-tax {
+  display: inline-block;
+  font-size: 14px;
+  color: #2e7d24;
+  background: #eaf6e8;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 5px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* ── Editable inputs ── */
+.cell-input {
+  background: #f7f7f7;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  color: #111111;
+  font-family: 'Geist', sans-serif;
+  font-size: 19px;
+  font-weight: 400;
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  -moz-appearance: textfield;
+}
+
+.cell-input::-webkit-inner-spin-button,
+.cell-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.cell-input:focus {
+  border: 1.5px solid #1a1a1a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.cell-input--qty {
+  width: 72px;
+  text-align: center;
+}
+
+.cell-price-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cell-input--price {
+  width: 96px;
+  text-align: right;
+}
+
+.cell-input-prefix {
+  color: #888888;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.cell-input-suffix {
+  color: #888888;
+  font-size: 18px;
+  white-space: nowrap;
+  padding-inline: 4px;
+}
+
+/* ── Price / Total cells ── */
+.cell-price {
+  color: #111111;
+  white-space: nowrap;
+}
+
+.cell-total {
+  color: #111111;
+  font-weight: 500;
+  white-space: nowrap;
+  font-size: 19px;
+}
+
+/* ── Remove button ── */
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.remove-btn:hover {
+  background: #fff0f0;
+}
+
+/* ── Footer summary ── */
+.cart-footer {
+  margin-top: 24px;
+  border-top: 1px solid #e8e8e8;
+  padding-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cart-summary {
+  min-width: 260px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 48px;
+  font-size: 18px;
+  color: #666666;
+  margin-bottom: 8px;
+}
+
+.summary-row span:last-child {
+  color: #111111;
+  font-weight: 500;
+}
+
+.summary-grand {
+  display: flex;
+  justify-content: space-between;
+  gap: 48px;
+  font-size: 24px;
+  color: #111111;
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  margin-top: 12px;
+  border-top: 1px solid #e8e8e8;
+  padding-top: 12px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Submit buttons ── */
+.submit-root {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 0 0;
+  gap: 8px;
+}
+
+.submit-root .submit-btn {
+  background: #111111;
+  color: #ffffff;
+  font-family: 'Geist', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  padding: 13px 26px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.submit-root .submit-btn:hover {
+  background: #2a2a2a;
+}
+
+.submit-root .submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-root .submit-n-print-btn {
+  background: #ffffff;
+  color: #111111;
+  font-family: 'Geist', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  padding: 13px 26px;
+  border-radius: 7px;
+  border: 1.5px solid #d0d0d0;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.submit-root .submit-n-print-btn:hover {
+  background: #f5f5f5;
+  border-color: #bbbbbb;
+}
+
+.submit-root .submit-n-print-btn:active {
+  transform: scale(0.98);
+}
+
+/* ── Disabled state ── */
+.submit-root button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ── */
+.spin {
+  animation: spin 0.75s linear infinite;
+  margin-inline: 6px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes spinner {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+
+
+
+
+
+
+
+
+
+
+/* ── Payment method toggle ───────────────────────────────────────────────── */
+.payment-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 16px 0 12px;
+  width: fit-content;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: #fff;
+  color: #64748b;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  outline: none;
+}
+
+.payment-option:first-child {
+  border-right: 1.5px solid #e2e8f0;
+}
+
+.payment-option:hover:not(.payment-option--active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.payment-option--active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.validation-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin: 12px 0 6px;
+  background: #fff5f5;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+ 
+.validation-error__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+ 
+.row--invalid td {
+  background: #fff5f5;
+}
+ 
+.row--invalid .cell-input--qty {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px #fecaca;
+}
