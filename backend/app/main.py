@@ -4,19 +4,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import pdf
 from app.api.routes import invoices, items, check_password
 
+from app.core.config import ENV, FRONTEND_DOMAIN
+
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-]
+if ENV == "prod":
+    origins = [FRONTEND_DOMAIN]
+else:
+    origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
 app.add_middleware(
     CORSMiddleware,

@@ -6,6 +6,8 @@ load_dotenv()
 CLIENT_ID = os.getenv("ZOHO_CLIENT_ID")
 CLIENT_SECRET = os.getenv("ZOHO_CLIENT_SECRET")
 PASSWORD = os.getenv("PASSWORD")
+ENV = os.getenv("ENV", "dev")
+FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
 
 def get_settings():
     return {
