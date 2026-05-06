@@ -16,7 +16,7 @@ export default function PasswordPopup({ isOpen, onClose }: PasswordPopupProps) {
     e.preventDefault();
     
     try {
-        const response = await fetch(`http://127.0.0.1:8080/check_password`, {
+        const response = await fetch(`https://zoho-zatca-pos.onrender.com/check_password`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -35,8 +35,8 @@ export default function PasswordPopup({ isOpen, onClose }: PasswordPopupProps) {
         setError('');
         onClose?.();        
     } catch (error) {
-        setError("error processing password")   
         console.error(error)
+        setError("error processing password")   
     }
 
     if (!inputValue.trim()) {

@@ -118,7 +118,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
     invoice_number: string;
   }> {
     const response = await fetch(
-      `http://127.0.0.1:8000/invoices/walk-in?method=${payment}`,
+      `https://zoho-zatca-pos.onrender.com/invoices/walk-in?method=${payment}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json","x-password": password || "" },
@@ -133,7 +133,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
   const handlePrintInvoice = () => {
     if (!invoiceResult) return;
     window.open(
-      `http://127.0.0.1:8000/invoice/${invoiceResult.invoice_id}/pdf`,
+      `https://zoho-zatca-pos.onrender.com/invoice/${invoiceResult.invoice_id}/pdf`,
       "_blank"
     );
     setAlertOpen(false);

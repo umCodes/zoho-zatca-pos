@@ -50,8 +50,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-  fetch("http://127.0.0.1:8000/items", {headers: {"x-password": password || ""} })
+  fetch("https://zoho-zatca-pos.onrender.com/items", {headers: {"x-password": password || ""} })
+    
     .then(res => {
+      console.log(res)
       if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
     })
