@@ -1,10 +1,9 @@
-from fastapi import FastAPI
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import httpx
+from app.core.config import RENDER_URL
 import os
 
 
-RENDER_URL = os.getenv("RENDER_URL", "http://127.0.0.1:8080")
 
 async def keep_alive():
     try:

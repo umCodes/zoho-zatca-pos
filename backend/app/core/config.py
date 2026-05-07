@@ -8,6 +8,8 @@ CLIENT_SECRET = os.getenv("ZOHO_CLIENT_SECRET")
 PASSWORD = os.getenv("PASSWORD")
 ENV = os.getenv("ENV", "dev")
 FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
+RENDER_URL = os.getenv("RENDER_URL", "http://127.0.0.1:8080")
+
 
 def get_settings():
     return {
