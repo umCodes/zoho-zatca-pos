@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import SpinnerButton from "./SpinnerButton";
 import AlertModal from "./AlertModal";
 import { usePassword } from "../context/PasswordContext";
+import { apiUrl } from "../env";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -18,17 +19,6 @@ interface RawInputs {
 
 interface CartTableProps {
   title?: string;
-}
-async function submitInvoice(): Promise<{
-  invoice_id: string;
-  invoice_number: string;
-}> {
-  // ── Dummy: simulates network delay ───────────────────────────────────────
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  return {
-    invoice_id: "46324000000100197",
-    invoice_number: "INV-00042",
-  };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -118,7 +108,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
     invoice_number: string;
   }> {
     const response = await fetch(
-      `https://zoho-zatca-pos.onrender.com/invoices/walk-in?method=${payment}`,
+      `${apiUrl}/invoices/walk-in?method=${payment}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json","x-password": password || "" },
@@ -133,7 +123,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
   const handlePrintInvoice = () => {
     if (!invoiceResult) return;
     window.open(
-      `https://zoho-zatca-pos.onrender.com/invoice/${invoiceResult.invoice_id}/pdf`,
+      `${apiUrl}/invoice/${invoiceResult.invoice_id}/pdf`,
       "_blank"
     );
     setAlertOpen(false);

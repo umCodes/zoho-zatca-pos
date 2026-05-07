@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import '../styles/PasswordPopup.css';
 import { usePassword } from '../context/PasswordContext';
+import { apiUrl } from '../env';
 
 interface PasswordPopupProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ export default function PasswordPopup({ isOpen, onClose }: PasswordPopupProps) {
     e.preventDefault();
     
     try {
-        const response = await fetch(`https://zoho-zatca-pos.onrender.com/check_password`, {
+        const response = await fetch(`${apiUrl}/check_password`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

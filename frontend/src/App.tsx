@@ -7,6 +7,7 @@ import { useLocale } from './context/LangContext';
 import OnlineOverlay from './components/OnlineOverlay';
 import PasswordPopup from './components/PasswordPopup';
 import { usePassword } from './context/PasswordContext';
+import { apiUrl } from './env';
 
 
 function App() {
@@ -50,7 +51,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-  fetch("https://zoho-zatca-pos.onrender.com/items", {headers: {"x-password": password || ""} })
+  fetch(`${apiUrl}/items`, {headers: {"x-password": password || ""} })
     
     .then(res => {
       console.log(res)
