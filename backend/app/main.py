@@ -9,7 +9,7 @@ from app.core.config import ENV, FRONTEND_DOMAIN
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
-from app.cron.oxygen import start_scheduler
+# from app.cron.oxygen import start_scheduler
 
 
 import sys
