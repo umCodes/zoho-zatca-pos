@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from app.core.config import PASSWORD
-
+import re
 
 async def validate_password(request: Request, call_next):
 
@@ -8,7 +8,7 @@ async def validate_password(request: Request, call_next):
         return await call_next(request)
     
 
-    if request.url.path in ["/docs", "/openapi.json", "/redoc", "/check_password", "/health"] or request.match(r"^/invoice/.*/pdf$", request.url.path):
+    if request.url.path in ["/docs", "/openapi.json", "/redoc", "/check_password", "/health"] or re.match(r"^/invoice/.*/pdf$", request.url.path):
         return await call_next(request)
 
     if request.headers.get("x-password") != PASSWORD:
