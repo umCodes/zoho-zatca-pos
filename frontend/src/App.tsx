@@ -51,9 +51,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log(apiUrl)
-  fetch(`${apiUrl}/items`, {headers: {"x-password": password || ""} })
-    
+  if (!isPasswordSet) return;
+  
+  fetch(`${apiUrl}/items`, { headers: { "x-password": password || "" } })
     .then(res => {
       if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
@@ -66,8 +66,7 @@ function App() {
       setItemsLoading(false)
       setItemsError(true)
     })
-}, [])
-
+}, [isPasswordSet, password])
 
 
   return (
