@@ -48,6 +48,6 @@ app.include_router(pdf.router)
 
 
 
-@app.on_event("startup")
-def oxygen():
-    start_scheduler()
+# @app.on_event("startup")
+# def oxygen():
+#     start_scheduler()
