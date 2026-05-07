@@ -51,10 +51,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    console.log(apiUrl)
   fetch(`${apiUrl}/items`, {headers: {"x-password": password || ""} })
     
     .then(res => {
-      console.log(res)
       if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
     })
