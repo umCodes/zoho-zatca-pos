@@ -10,6 +10,12 @@ from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
 from app.cron.oxygen import start_scheduler
+
+
+import sys
+print("Python version:", sys.version, file=sys.stderr)
+print("Current working directory:", os.getcwd(), file=sys.stderr)
+
 app = FastAPI()
 
 if ENV == "prod":
