@@ -12,8 +12,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [cart, setCart] = useState<CartEntry[]>([]);
 
     const addToCart = (item: Item) => {
-        setCart(prev => [...prev, {...item, qty: item?.qty || 1, line_id: crypto.randomUUID()}]);
-    };
+
+    setCart(prev => {
+
+        const priceInCents = Math.round(item.price * 100);
+        // +15%
+        const taxedPriceInCents = Math.round((priceInCents * 115) / 100);
+        return [
+            ...prev,
+            {
+                ...item,
+                price: taxedPriceInCents / 100,
+                qty: item.qty ?? 1,
+                line_id: crypto.randomUUID(),
+            }];
+    });
+  };
 
     const removeFromCart = (id: string) => {
         setCart(prev => prev.filter(item => item.line_id !== id));
