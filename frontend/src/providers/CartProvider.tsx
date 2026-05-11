@@ -22,7 +22,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...prev,
             {
                 ...item,
-                price: taxedPriceInCents / 100,
+                rate: taxedPriceInCents / 100,
                 qty: item.qty ?? 1,
                 line_id: crypto.randomUUID(),
             }];
