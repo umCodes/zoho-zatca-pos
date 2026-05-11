@@ -15,7 +15,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setCart(prev => {
 
-        const priceInCents = Math.round(item.price * 100);
+        const priceInCents = Math.round(item.rate * 100);
         // +15%
         const taxedPriceInCents = Math.round((priceInCents * 115) / 100);
         return [
