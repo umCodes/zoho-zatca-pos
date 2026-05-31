@@ -38,8 +38,10 @@ async def create_walk_in_invoice(line_items, method: str = "Cash"):
     invoice_number = invoice_data["invoice_number"]
     # Mark as sent
     res = await zoho_post(f"/invoices/{invoice_id}/status/sent")
-    if res.status_code not in (200, 201):
-        raise ValueError(f"Failed to mark invoice as sent: {res.text}")
+    # if res.status_code not in (200, 201):
+    
+    is_sent = True if res.status_code in (200, 201) else False 
+        # raise ValueError(f"Failed to mark invoice as sent: {res.text}")
 
     # Record payment
     payment_payload = {
@@ -56,12 +58,12 @@ async def create_walk_in_invoice(line_items, method: str = "Cash"):
     }
     res = await zoho_post("/customerpayments", payment_payload)
     payment_data = res.json()
-    if "payment" not in payment_data:
-        raise ValueError(f"Failed to record payment: {payment_data.get('message', 'Unknown error')}")
-
+    is_paid = True if "payment" in payment_data else False
     return {
         "invoice_id": invoice_id,
         "invoice_number": invoice_number,
         "payment_id": payment_data["payment"]["payment_id"],
         "amount": total,
+        "is_sent": is_sent,
+        "is_paid": is_paid,
     }
