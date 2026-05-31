@@ -57,10 +57,11 @@ async def create_walk_in_invoice(line_items, method: str = "Cash"):
     res = await zoho_post("/customerpayments", payment_payload)
     payment_data = res.json()
     is_paid = True if "payment" in payment_data else False
+    
     return {
         "invoice_id": invoice_id,
         "invoice_number": invoice_number,
-        "payment_id": payment_data["payment"]["payment_id"],
+        "payment_id": None if not is_paid else payment_data["payment"]["payment_id"],
         "amount": total,
         "is_sent": is_sent,
         "is_paid": is_paid,
