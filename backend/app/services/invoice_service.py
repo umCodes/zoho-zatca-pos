@@ -38,7 +38,6 @@ async def create_walk_in_invoice(line_items, method: str = "Cash"):
     invoice_number = invoice_data["invoice_number"]
     # Mark as sent
     res = await zoho_post(f"/invoices/{invoice_id}/status/sent")
-    # if res.status_code not in (200, 201):
     
     is_sent = True if res.status_code in (200, 201) else False 
         # raise ValueError(f"Failed to mark invoice as sent: {res.text}")
