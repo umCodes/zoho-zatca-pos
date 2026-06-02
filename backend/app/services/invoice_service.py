@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import date
 
-from app.models.invoice import Invoice
+from app.models.invoice_models import Invoice
 from app.services.zoho_client import zoho_post
 from app.utils.filters import filter_fields, filter_list_fields
 
@@ -57,7 +57,7 @@ async def create_walk_in_invoice(line_items, method: str = "Cash"):
     res = await zoho_post("/customerpayments", payment_payload)
     payment_data = res.json()
     is_paid = True if "payment" in payment_data else False
-    
+
     return {
         "invoice_id": invoice_id,
         "invoice_number": invoice_number,
