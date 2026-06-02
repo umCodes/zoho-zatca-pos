@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.models.invoice import LineItem
+from app.models.invoice_models import LineItem
 from app.services.invoice_service import create_walk_in_invoice
 
 router = APIRouter()

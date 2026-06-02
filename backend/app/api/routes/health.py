@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-
+from app.services.gemini_services import process_img
 router = APIRouter()
 
 @router.get("/health")
-def health_check():
-    print("hey")
+async def health_check():
+    print("Hello")
     return {
         "status": "ok",
         "service": "running"
