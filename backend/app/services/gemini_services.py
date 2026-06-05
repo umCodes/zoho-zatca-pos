@@ -16,11 +16,12 @@ PROMPT = """
     - if an English translation is not provided, create one. Transliterate the brand or company name, and translate the other terms.
     
     {
-        "date": "",
+        "date": "",<- YYYY-MM-DD
         "amount": 0, <- tax-inclusive
         "reference_number": "", <- invoice number
-        "tax_treatment": "vat_registered | vat_not_registered",
-        "tax_reg_no": "",<- vat registration number
+        "tax_treatment": "vat_registered | vat_not_registered", <- if VAT No is present, it's vat_registered; otherwise vat_not_registered
+        "tax_reg_no": "",<- vat registration number,
+        "contact_name": "" <- the name of the vendor
   }
 """
 
