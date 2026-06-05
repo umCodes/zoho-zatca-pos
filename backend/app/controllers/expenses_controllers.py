@@ -1,8 +1,11 @@
 # services/expenses.py
 from app.models.expenses_models import ExpenseModel
 from app.services.zoho_client import zoho_post
-from app.utils.filters import filter_fields
-
+from app.utils.filters import filter_fields, filter_list_fields
+from app.db.database import get_db
+from app.controllers.vendors_controllers import create_vendor, get_vendor
+from app.models.vendors_models import VendorModel
+from fastapi import HTTPException
 
 async def create_purchase(expense_data: ExpenseModel) -> dict:
     payload = {
@@ -16,29 +19,41 @@ async def create_purchase(expense_data: ExpenseModel) -> dict:
         "place_of_supply": expense_data.place_of_supply,
         "is_inclusive_tax": expense_data.is_inclusive_tax,
     }
+    vendor = await get_vendor(expense_data.tax_reg_no)
+    if not vendor:
+        vendor = await create_vendor(VendorModel(
+            contact_type="vendor",
+            contact_name=expense_data.contact_name,
+            tax_reg_no=expense_data.tax_reg_no,
+            tax_treatment=expense_data.tax_treatment,
+        ))
 
+    payload["vendor_id"] = vendor["contact_id"]
     if expense_data.tax_treatment == "vat_registered":
         payload["tax_reg_no"] = expense_data.tax_reg_no
-        payload["tax_percentage"] = expense_data.tax_percentage
+        # payload["tax_percentage"] = expense_data.tax_percentage
 
     if expense_data.vendor_id:
         payload["vendor_id"] = expense_data.vendor_id
 
+    
+    print(f"Creating expense with payload: {payload}")
     res = await zoho_post("/expenses", payload)
     data = res.json()
-    print(data)
+
     if "expense" not in data:
-        raise ValueError(f"Failed to create expense: {data.get('message', 'Unknown error')}")
+        raise HTTPException(status_code=400, detail=f"Failed to create expense: {data.get('message', 'Unknown error')}")
+        # return {"message": f"Failed to create expense: {data.get('message', 'Unknown error')}"}
     fields_to_keep = [
-    "expense_id",
-    "transaction_type",
-    "account_id",
-    "tax_reg_no",
-    "tax_treatment",
-    "vendor_id",
-    "vendor_name",
-    "date",
-]
+        "expense_id",
+        "transaction_type",
+        "account_id",
+        "tax_reg_no",
+        "tax_treatment",
+        "vendor_id",
+        "vendor_name",
+        "date",
+    ]
 
     filtered = filter_fields(data["expense"], fields_to_keep)
-    return data["expense"]
+    return filtered 
