@@ -17,11 +17,12 @@ def get_params():
 
 async def zoho_get(path: str, params:  dict = None):
     merged_params = {**get_params(), **(params or {})}  # merge safely
+    print(f"Making GET request to {BASE_URL}{path} with params: {merged_params}")
     async with httpx.AsyncClient() as client:
         return await client.get(
             f"{BASE_URL}{path}",
             headers=get_headers(),
-            params=params
+            params=merged_params
         )
 
 
