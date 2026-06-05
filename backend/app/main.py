@@ -2,13 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import pdf
-from app.api.routes import invoices, items, check_password, health
-
+from app.api.routes import invoices, items, check_password, health, expenses, vendors, images
 from app.core.config import ENV, FRONTEND_DOMAIN
 
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
+from app.db.database import create_tables 
 # from app.cron.oxygen import start_scheduler
 
 
@@ -19,6 +19,11 @@ print("Python version:", sys.version, file=sys.stderr)
 print("Current working directory:", os.getcwd(), file=sys.stderr)
 
 app = FastAPI()
+
+create_tables()
+
+
+
 
 if ENV == "prod":
     origins = [FRONTEND_DOMAIN]
@@ -43,9 +48,11 @@ app.middleware("http")(token_refresh_middleware)
 app.include_router(health.router)
 app.include_router(check_password.router)
 app.include_router(invoices.router)
+app.include_router(expenses.router)
+app.include_router(vendors.router)
 app.include_router(items.router)
 app.include_router(pdf.router)
-
+app.include_router(images.router)
 
 
 # @app.on_event("startup")
