@@ -11,6 +11,9 @@ ENV = os.getenv("ENV", "dev")
 FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
 RENDER_URL = os.getenv("RENDER_URL", "http://127.0.0.1:8080")
 
+DB_NAME = os.getenv("DB_NAME", "zoho-reference-db")
+DB_PASSWORD= os.getenv("DB_PASSWORD")
+
 
 def get_settings():
     return {
