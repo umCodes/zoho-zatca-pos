@@ -9,6 +9,7 @@ class ExpenseModel(BaseModel):
     amount: Decimal = Field(..., gt=0)
     paid_through_account_id: str = "46324000000000323"
     vendor_id: Optional[str] = None
+    contact_name: Optional[str] = None
     reference_number: str
     
     tax_treatment: Literal["vat_registered", "vat_not_registered"] = "vat_not_registered"
