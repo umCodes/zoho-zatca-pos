@@ -4,7 +4,6 @@ from app.core.config import DB_CONNECTION_STRING
 from app.db.base import Base
 from app.db.models import Contact
 
-
 engine = create_engine(DB_CONNECTION_STRING)
 
 SessionLocal = sessionmaker(

@@ -1,4 +1,3 @@
-# services/expenses.py
 from app.models.expenses_models import ExpenseModel
 from app.services.zoho_client import zoho_post
 from app.utils.filters import filter_fields, filter_list_fields
@@ -27,7 +26,7 @@ async def create_purchase(expense_data: ExpenseModel) -> dict:
             tax_reg_no=expense_data.tax_reg_no,
             tax_treatment=expense_data.tax_treatment,
         ))
-
+        print(vendor)
     payload["vendor_id"] = vendor["contact_id"]
     if expense_data.tax_treatment == "vat_registered":
         payload["tax_reg_no"] = expense_data.tax_reg_no

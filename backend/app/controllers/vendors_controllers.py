@@ -1,4 +1,4 @@
-# services/vendors.py
+
 from app.models.vendors_models import VendorModel
 from app.services.zoho_client import zoho_post, zoho_get
 from app.utils.filters import filter_fields, filter_list_fields
@@ -38,7 +38,6 @@ async def create_vendor(vendor_data: VendorModel) -> dict:
         # 2. Call Zoho first — we need `data` before writing to DB
         res = await zoho_post("/contacts", payload)
         data = res.json()
-        print(data)
 
         if "contact" not in data:
             raise ValueError(
