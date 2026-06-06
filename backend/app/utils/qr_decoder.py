@@ -60,7 +60,6 @@ def decode_qr_code(b64_string: str):
 
     results = zxingcpp.read_barcodes(img)
     for r in results:
-        print(r.text)
         if r.text:
             return {
                 "data": extract_info(r.text)
