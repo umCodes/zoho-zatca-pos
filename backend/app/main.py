@@ -71,6 +71,7 @@ app.include_router(images.router)
 async def webhook(request: Request):
     update = await request.json()
     text = update["message"]["text"]
+    caption = update["message"].get("caption", "")
     chat_id = update["message"]["chat"]["id"]
 
     if text.startswith("/weather"):
@@ -85,7 +86,7 @@ async def webhook(request: Request):
                 }
             )
 
-    if text.startswith("/readqr"):
+    if caption.startswith("/readqr"):
         photo = update["message"]["photo"][-1]
         response = await upload_qr_image(photo)
         async with httpx.AsyncClient() as client:
