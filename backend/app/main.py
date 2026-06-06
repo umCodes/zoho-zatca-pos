@@ -107,7 +107,21 @@ async def webhook(request: Request):
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
                 json={
                     "chat_id": chat_id,
-                    "text": f"Name: {pending_actions[chat_id].get('seller', 'N/A')}\nAmount: {pending_actions[chat_id].get('total', 'N/A')}\nDate: {pending_actions[chat_id].get('timestamp', 'N/A'), "VAT No": pending_actions[chat_id].get('vat_number', 'N/A')} \n\n To confirm, reply with /confirm\n To Edit /edit \n To Cancel /cancel"
+                    "text":(
+                            f"Name: {pending_actions[chat_id].get('seller', 'N/A')}\n"
+                            f"Amount: {pending_actions[chat_id].get('total', 'N/A')}\n"
+                            f"Date: {pending_actions[chat_id].get('timestamp', 'N/A')}\n"
+                            f"VAT No: {pending_actions[chat_id].get('vat_number', 'N/A')}\n\n"
+                        ),
+                    "reply_markup": {
+                        "inline_keyboard": [
+                            [
+                                {"text": "Confirm", "callback_data": "confirm"},
+                                {"text": "Edit", "callback_data": "edit"},
+                                {"text": "Cancel", "callback_data": "cancel"}
+                            ]
+                        ]
+                    }
                 }
             )
         
