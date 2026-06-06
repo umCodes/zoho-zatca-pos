@@ -2,6 +2,8 @@ from fastapi import UploadFile, File
 import httpx
 from app.services.gemini_services import process_img
 import base64
+# from app.services.qr_services import read_qr_code 
+from app.utils.qr_decoder import decode_qr_code
 
 
 
@@ -23,5 +25,26 @@ async def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         return {
             "error": str(e)
+        }
+    
+
+async def upload_qr_image(file: UploadFile = File(...)):
+    try:
+        if not file:
+            raise ValueError("No file uploaded")
+        if file.content_type not in ["image/png", "image/jpeg"]:
+            raise ValueError("Unsupported file type. Please upload a PNG or JPEG image.")
+        image_bytes = await file.read()
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+        data = decode_qr_code(image_base64)
+        return data 
+    except ValueError as e:
+        print(f"{e}")
+        return {
+            "error": str(e)
+        }
+    except Exception as e:
+        return {
+            "error": "Unexpected error processing QR code"
         }
     
