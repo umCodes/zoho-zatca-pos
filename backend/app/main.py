@@ -71,8 +71,7 @@ app.include_router(images.router)
 async def webhook(request: Request):
     update = await request.json()
     print(f"Received Telegram update: {update}")
-    text = update["message"]["text"]
-    caption = update["message"].get("caption", "")
+    text = update["message"]["text"] if "text" in update["message"] else update["message"].get("caption", "")
     chat_id = update["message"]["chat"]["id"]
 
     if text.startswith("/weather"):
@@ -87,7 +86,7 @@ async def webhook(request: Request):
                 }
             )
 
-    if caption.startswith("/readqr"):
+    if text.startswith("/readqr"):
         photo = update["message"]["photo"][-1]
         response = await upload_qr_image(photo)
         async with httpx.AsyncClient() as client:
