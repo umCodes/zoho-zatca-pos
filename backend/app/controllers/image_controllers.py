@@ -28,7 +28,7 @@ async def upload_image(file: UploadFile = File(...)):
         }
     
 
-async def upload_qr_image(file: UploadFile = File(...), image_bytes: bytes = None, image_base64: str = None):
+async def upload_qr_image(file: UploadFile = None, image_bytes: bytes = None, image_base64: str = None):
     try:
         
         if not file and not image_bytes and not image_base64:
