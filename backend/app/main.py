@@ -88,7 +88,14 @@ async def webhook(request: Request):
 
     if text.startswith("/readqr"):
         photo = update["message"]["photo"][-1]
-        response = await upload_qr_image(photo)
+        file_id = photo["file_id"]
+        async with httpx.AsyncClient() as client:
+            res = await client.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}")
+            file_path = res.json()["result"]["file_path"]
+            file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
+            img_response = await client.get(file_url)
+            photo_bytes = img_response.content
+        response = await upload_qr_image(photo_bytes)
         async with httpx.AsyncClient() as client:
             await client.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
