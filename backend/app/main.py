@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import pdf
@@ -9,8 +9,12 @@ from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
 from app.db.database import create_tables 
+
 # from app.cron.oxygen import start_scheduler
 
+from app.core.config import TELEGRAM_BOT_TOKEN
+
+import httpx
 
 import sys
 import os
@@ -58,3 +62,27 @@ app.include_router(images.router)
 # @app.on_event("startup")
 # def oxygen():
 #     start_scheduler()
+
+
+
+@app.post("/telegram/webhook")
+async def webhook(request: Request):
+    update = await request.json()
+    text = update["message"]["text"]
+    chat_id = update["message"]["chat"]["id"]
+
+    if text.startswith("/weather"):
+        city = text.replace("/weather", "").strip()
+
+        # Call internal logic/API here
+
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": f"Weather for {city}: Sunny"
+                }
+            )
+
+    return {"ok": True}

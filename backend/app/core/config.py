@@ -15,6 +15,7 @@ RENDER_URL = os.getenv("RENDER_URL", "http://127.0.0.1:8080")
 # DB_PASSWORD= os.getenv("DB_PASSWORD")
 
 DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
+TELEGRAM_BOT_TOKEN= os.getenv("TELEGRAM_BOT_TOKEN")
 
 def get_settings():
     return {
