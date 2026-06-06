@@ -28,16 +28,27 @@ async def upload_image(file: UploadFile = File(...)):
         }
     
 
-async def upload_qr_image(file: UploadFile = File(...)):
+async def upload_qr_image(file: UploadFile = File(...), image_bytes: bytes = None, image_base64: str = None):
     try:
-        if not file:
+        
+        if not file and not image_bytes and not image_base64:
             raise ValueError("No file uploaded")
-        if file.content_type not in ["image/png", "image/jpeg"]:
+        if file and file.content_type not in ["image/png", "image/jpeg"]:
             raise ValueError("Unsupported file type. Please upload a PNG or JPEG image.")
-        image_bytes = await file.read()
-        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-        data = decode_qr_code(image_base64)
-        return data 
+
+
+        if image_bytes: 
+            image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+        if image_base64:
+            data = decode_qr_code(image_base64)
+            return data
+        
+        if file and file.content_type in ["image/png", "image/jpeg"]:
+            image_bytes = await file.read()
+            image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+            data = decode_qr_code(image_base64)
+            return data
+        
     except ValueError as e:
         print(f"{e}")
         return {

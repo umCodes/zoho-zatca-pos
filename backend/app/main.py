@@ -98,7 +98,7 @@ async def webhook(request: Request):
             img_response = await client.get(file_url)
             photo_bytes = img_response.content
             print(f"🔵 Downloaded image bytes: {len(photo_bytes)} bytes")
-        response = await upload_qr_image(photo_bytes)
+        response = await upload_qr_image(image_bytes=photo_bytes)
         print(f"🔵 QR Code Data: {response.get('data', 'Could not read QR code')}")
         async with httpx.AsyncClient() as client:
             await client.post(
