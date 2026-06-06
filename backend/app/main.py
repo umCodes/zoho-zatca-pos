@@ -13,11 +13,13 @@ from app.db.database import create_tables
 # from app.cron.oxygen import start_scheduler
 
 from app.core.config import TELEGRAM_BOT_TOKEN
+from app.controllers.image_controllers import upload_qr_image
 
 import httpx
 
 import sys
 import os
+
 
 print("Python version:", sys.version, file=sys.stderr)
 print("Current working directory:", os.getcwd(), file=sys.stderr)
@@ -74,8 +76,6 @@ async def webhook(request: Request):
     if text.startswith("/weather"):
         city = text.replace("/weather", "").strip()
 
-        # Call internal logic/API here
-
         async with httpx.AsyncClient() as client:
             await client.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
@@ -85,4 +85,20 @@ async def webhook(request: Request):
                 }
             )
 
+    if text.startswith("/readqr"):
+        photo = update["message"]["photo"][-1]
+        response = await upload_qr_image(photo)
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": f"QR Code Data: {response.get('data', 'Could not read QR code')}"
+                }
+            )
+
+        # Call internal logic/API here
+
     return {"ok": True}
+
+
