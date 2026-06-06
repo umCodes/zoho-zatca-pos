@@ -13,7 +13,13 @@ from app.db.database import create_tables
 # from app.cron.oxygen import start_scheduler
 
 from app.core.config import TELEGRAM_BOT_TOKEN
+
 from app.controllers.image_controllers import upload_qr_image
+from app.controllers.expenses_controllers import create_purchase
+
+from app.services.telegram_services import TelegramService
+
+from app.models.expenses_models import ExpenseModel
 
 import httpx
 
@@ -65,7 +71,7 @@ app.include_router(images.router)
 # def oxygen():
 #     start_scheduler()
 
-
+telegram = TelegramService(bot_token=TELEGRAM_BOT_TOKEN)
 pending_actions = {}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
@@ -74,58 +80,60 @@ async def webhook(request: Request):
     text = update["message"]["text"] if "text" in update["message"] else update["message"].get("caption", "")
     chat_id = update["message"]["chat"]["id"]
 
-    if text.startswith("/weather"):
-        city = text.replace("/weather", "").strip()
-
-        async with httpx.AsyncClient() as client:
-            await client.post(
-                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                json={
-                    "chat_id": chat_id,
-                    "text": f"Weather for {city}: Sunny"
-                }
-            )
-
     if text.startswith("/readqr"):
         photo = update["message"]["photo"][-1]
         file_id = photo["file_id"]
-        async with httpx.AsyncClient() as client:
-            res = await client.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}")
-            print(f"🔵 Telegram getFile response: {res.json()}")
-            file_path = res.json()["result"]["file_path"]
-            print(f"🔵 Telegram File Path: {file_path}")
-            file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
-            img_response = await client.get(file_url)
-            photo_bytes = img_response.content
-            print(f"🔵 Downloaded image bytes: {len(photo_bytes)} bytes")
+
+        img_response = await telegram.download_file(file_id=file_id)
+        photo_bytes = img_response.content
         response = await upload_qr_image(image_bytes=photo_bytes)
-        print(f"🔵 QR Code Data: {response.get('data', 'Could not read QR code')}")
 
         pending_actions[chat_id] = response.get("data", "Could not read QR code")
-        async with httpx.AsyncClient() as client:
-            await client.post(
-                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                json={
-                    "chat_id": chat_id,
-                    "text":(
-                            f"Name: {pending_actions[chat_id].get('seller', 'N/A')}\n"
-                            f"Amount: {pending_actions[chat_id].get('total', 'N/A')}\n"
-                            f"Date: {pending_actions[chat_id].get('timestamp', 'N/A')}\n"
-                            f"VAT No: {pending_actions[chat_id].get('vat_number', 'N/A')}\n\n"
-                        ),
-                    "reply_markup": {
-                        "inline_keyboard": [
-                            [
-                                {"text": "✅ Confirm", "callback_data": "confirm"},
-                                {"text": "✏️ Edit", "callback_data": "edit"},
-                                {"text": "❌ Cancel", "callback_data": "cancel"}
-                            ]
-                        ]
-                    }
-                }
-            )
         
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=(
+                f"Name: {pending_actions[chat_id].get('seller', 'N/A')}\n"
+                f"Amount: {pending_actions[chat_id].get('total', 'N/A')}\n"
+                f"Date: {pending_actions[chat_id].get('timestamp', 'N/A')}\n"
+                f"VAT No: {pending_actions[chat_id].get('vat_number', 'N/A')}\n\n"
+            ),
+            reply_markup={
+                "inline_keyboard": [
+                    [
+                        {"text": "✅ Confirm", "callback_data": "confirm"},
+                        {"text": "✏️ Edit", "callback_data": "edit"},
+                        {"text": "❌ Cancel", "callback_data": "cancel"}
+                    ]
+                ]
+            }
+        )
+        
+        if update.get("callback_query"):
+            callback_data = update["callback_query"]["data"]
+            if callback_data == "confirm":
+                # Save to DB or perform action
+                expense = await create_purchase(ExpenseModel(
+                    data=pending_actions.get("timestamp"),
+                    contact_name=pending_actions.get("seller"),
+                    tax_reg_no=pending_actions.get("vat_number"),
+                    amount=float(pending_actions("total"))
+                    
+                ))
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=f"✅ Expense with id '{expense.expense_id}' created."
+                )
 
+
+                print(f"User confirmed data: {pending_actions[chat_id]}")
+                del pending_actions[chat_id]
+            elif callback_data == "edit":
+                # Ask user for new input
+                print(f"User wants to edit data: {pending_actions[chat_id]}")
+            elif callback_data == "cancel":
+                print(f"User cancelled action for data: {pending_actions[chat_id]}")
+                del pending_actions[chat_id]
         # Call internal logic/API here
 
     return {"ok": True}
