@@ -66,7 +66,7 @@ app.include_router(images.router)
 #     start_scheduler()
 
 
-
+pending_actions = {}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
@@ -100,14 +100,17 @@ async def webhook(request: Request):
             print(f"🔵 Downloaded image bytes: {len(photo_bytes)} bytes")
         response = await upload_qr_image(image_bytes=photo_bytes)
         print(f"🔵 QR Code Data: {response.get('data', 'Could not read QR code')}")
+
+        pending_actions[chat_id] = response.get("data", "Could not read QR code")
         async with httpx.AsyncClient() as client:
             await client.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
                 json={
                     "chat_id": chat_id,
-                    "text": f"QR Code Data: {response.get('data', 'Could not read QR code')}"
+                    "text": f"Name: {pending_actions[chat_id].get('seller', 'N/A')}\nAmount: {pending_actions[chat_id].get('total', 'N/A')}\nDate: {pending_actions[chat_id].get('timestamp', 'N/A'), "VAT No": pending_actions[chat_id].get('vat_number', 'N/A')} \n\n To confirm, reply with /confirm\n To Edit /edit \n To Cancel /cancel"
                 }
             )
+        
 
         # Call internal logic/API here
 
