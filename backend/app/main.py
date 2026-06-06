@@ -83,9 +83,7 @@ async def webhook(request: Request):
     if text.startswith("/readqr"):
         photo = update["message"]["photo"][-1]
         file_id = photo["file_id"]
-
-        img_response = await telegram.download_file(file_id=file_id)
-        photo_bytes = img_response.content
+        photo_bytes = await telegram.download_file(file_id=file_id)
         response = await upload_qr_image(image_bytes=photo_bytes)
 
         pending_actions[chat_id] = response.get("data", "Could not read QR code")
