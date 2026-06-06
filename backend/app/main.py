@@ -115,11 +115,10 @@ async def webhook(request: Request):
                         ),
                     "reply_markup": {
                         "keyboard": [
-                            ["/confirm", " ✅ Confirm"],
-                            ["/reject", "❌ Reject"],
-                            ["/edit", "✏️ Edit"],   
+                                ["✅ Confirm", "❌ Reject"],
+                                ["✏️ Edit"]   
                         ],
-                         "resize_keyboard": True,
+                        "resize_keyboard": True,
                         "one_time_keyboard": True
                     }
                 }
