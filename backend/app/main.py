@@ -114,12 +114,13 @@ async def webhook(request: Request):
                             f"VAT No: {pending_actions[chat_id].get('vat_number', 'N/A')}\n\n"
                         ),
                     "reply_markup": {
-                        "keyboard": [
-                                ["✅ Confirm", "❌ Reject"],
-                                ["✏️ Edit"]   
-                        ],
-                        "resize_keyboard": True,
-                        "one_time_keyboard": True
+                        "inline_keyboard": [
+                            [
+                                {"text": "✅ Confirm", "callback_data": "confirm"},
+                                {"text": "✏️ Edit", "callback_data": "edit"},
+                                {"text": "❌ Cancel", "callback_data": "cancel"}
+                            ]
+                        ]
                     }
                 }
             )
