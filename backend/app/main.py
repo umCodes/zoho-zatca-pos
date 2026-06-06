@@ -70,6 +70,7 @@ app.include_router(images.router)
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
+    print(f"Received Telegram update: {update}")
     text = update["message"]["text"]
     caption = update["message"].get("caption", "")
     chat_id = update["message"]["chat"]["id"]
