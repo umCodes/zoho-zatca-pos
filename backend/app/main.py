@@ -77,7 +77,7 @@ pending_actions = {}
 async def webhook(request: Request):
     update = await request.json()
     print(f"Received Telegram update: {update}")
-    text = update["message"]["text"] if "text" in update["message"] else update["message"].get("caption", "")
+    text = update["message"]["text"] or update["message"].get("caption") or update["message"]["data"] or ""
     chat_id = update["message"]["chat"]["id"]
 
     if text.startswith("/readqr"):
