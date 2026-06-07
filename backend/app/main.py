@@ -112,10 +112,22 @@ async def webhook(request: Request):
         chat_id = message["chat"]["id"]
         text = message.get("text") or message.get("caption") or ""
 
+        AR_QR_INVOICE = "صورة + /qrcode (إدخال الفاتورة عبر QR)"
+        AR_IMG_INVOICE = "صورة + /enter (إدخال الفاتورة عبر صورة)"
+
+        AM_QR_INVOICE = "ፎቶ + /qrcode (በQR ኮድ የኢንቮይስ ግቤት)"
+        AM_IMG_INVOICE = "ፎቶ + /enter (በፎቶ የኢንቮይስ ግቤት)"
+        
         if text.startswith("/start"):
             await telegram.send_message(
                 chat_id=chat_id,
-                text="Hey"
+                text=text(
+                    AM_QR_INVOICE
+                    AR_QR_INVOICE
+                    
+                    AR_IMG_INVOICE
+                    AM_IMG_INVOICE
+                )
             )
 
     # ---------------- CALLBACK FLOW ----------------
