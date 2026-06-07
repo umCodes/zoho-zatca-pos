@@ -67,6 +67,28 @@ app.include_router(items.router)
 app.include_router(pdf.router)
 app.include_router(images.router)
 
+def extract_purchase_data(text: str) -> dict:
+    """
+    Extract purchase data from text like:
+
+    Name: مؤسسة بحر التوابل للمواد الغذائيه
+    Amount: 5520.0
+    Date: 2026-04-07T08:25:08Z
+    VAT No: 311964379200003
+    """
+    fields = {}
+
+    for line in text.splitlines():
+        if ":" in line:
+            key, value = line.split(":", 1)
+            fields[key.strip()] = value.strip()
+
+    return {
+        "name": fields.get("Name"),
+        "amount": float(fields["Amount"]) if fields.get("Amount") else None,
+        "date": fields.get("Date"),
+        "vat_no": fields.get("VAT No"),
+    }
 
 # @app.on_event("startup")
 # def oxygen():
@@ -98,6 +120,7 @@ async def webhook(request: Request):
             response = await upload_qr_image(image_bytes=photo_bytes)
 
             data = response.get("data", {})
+
             pending_actions[chat_id] = data
 
             await telegram.send_message(
@@ -105,7 +128,7 @@ async def webhook(request: Request):
                 text=(
                     f"Name: {data.get('seller', 'N/A')}\n"
                     f"Amount: {data.get('total', 'N/A')}\n"
-                    f"Date: {data.get('timestamp', 'N/A')}\n"
+                    f"Date: {data.get('timestamp', 'N/A').split("T")[0]}\n"
                     f"VAT No: {data.get('vat_number', 'N/A')}\n"
                 ),
                 reply_markup={
@@ -123,12 +146,16 @@ async def webhook(request: Request):
     elif callback:
         chat_id = callback["message"]["chat"]["id"]
         callback_data = callback["data"]
-        print(callback_data)
-        data = pending_actions.get(chat_id)
-        print(data)
+        # data = pending_actions.get(chat_id)
+        
         if callback_data == "confirm":
+            ######HERE
+            text = callback.get("message", {}).get("text")
+            
+            data = extract_purchase_data(text)
+
             expense = await create_purchase(ExpenseModel(
-                date=data.get("timestamp"),
+                date=data.get("timestamp").split("T")[0],
                 contact_name=data.get("seller"),
                 tax_reg_no=data.get("vat_number"),
                 amount=Decimal(str(data.get("total", 0))),
