@@ -126,10 +126,10 @@ async def webhook(request: Request):
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"Name: {data.get('name', 'N/A')}\n"
-                    f"Amount: {data.get('amount', 'N/A')}\n"
-                    f"Date: {data.get('date', 'N/A').split("T")[0]}\n"
-                    f"VAT No: {data.get('vat_no', 'N/A')}\n"
+                    f"Name: {data.get('seller', 'N/A')}\n"
+                    f"Amount: {data.get('total', 'N/A')}\n"
+                    f"Date: {data.get('timestamp', 'N/A').split("T")[0]}\n"
+                    f"VAT No: {data.get('vat_number', 'N/A')}\n"
                 ),
                 reply_markup={
                     "inline_keyboard": [
@@ -151,14 +151,13 @@ async def webhook(request: Request):
         if callback_data == "confirm":
             ######HERE
             text = callback.get("message", {}).get("text")
-            
             data = extract_purchase_data(text)
-
+            
             expense = await create_purchase(ExpenseModel(
-                date=data.get("timestamp").split("T")[0],
-                contact_name=data.get("seller"),
-                tax_reg_no=data.get("vat_number"),
-                amount=Decimal(str(data.get("total", 0))),
+                date=data.get("date").split("T")[0],
+                contact_name=data.get("name"),
+                tax_reg_no=data.get("vat_no"),
+                amount=Decimal(str(data.get("amount", 0))),
             ))
 
             await telegram.send_message(
