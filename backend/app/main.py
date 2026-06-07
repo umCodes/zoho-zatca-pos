@@ -146,7 +146,8 @@ async def webhook(request: Request):
                     else "التقط صورة كاملة للفاتورة وأرسلها"
                 )
             )
-    elif photo: 
+   
+    if photo: 
         file_id = photo[-1]["file_id"]
         image_bytes = await telegram.download_file(file_id=file_id)
 
