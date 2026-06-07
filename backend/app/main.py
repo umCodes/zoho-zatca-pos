@@ -94,84 +94,11 @@ def extract_purchase_data(text: str) -> dict:
 # def oxygen():
 #     start_scheduler()
 
+
 telegram = TelegramService(bot_token=TELEGRAM_BOT_TOKEN)
 pending_actions = {}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
-    print(f"Received Telegram update: {update}")
-
-    message = update.get("message")
-    callback = update.get("callback_query")
-
-    chat_id = None
-    text = ""
-
-    # ---------------- MESSAGE FLOW ----------------
-    if message:
-        chat_id = message["chat"]["id"]
-        text = message.get("text") or message.get("caption") or ""
-
-        if text.startswith("/readqr"):
-            photo = message["photo"][-1]
-            file_id = photo["file_id"]
-
-            photo_bytes = await telegram.download_file(file_id=file_id)
-            response = await upload_qr_image(image_bytes=photo_bytes)
-
-            data = response.get("data", {})
-
-            pending_actions[chat_id] = data
-
-            await telegram.send_message(
-                chat_id=chat_id,
-                text=(
-                    f"Name: {data.get('seller', 'N/A')}\n"
-                    f"Amount: {data.get('total', 'N/A')}\n"
-                    f"Date: {data.get('timestamp', 'N/A').split("T")[0]}\n"
-                    f"VAT No: {data.get('vat_number', 'N/A')}\n"
-                ),
-                reply_markup={
-                    "inline_keyboard": [
-                        [
-                            {"text": "✅ Confirm", "callback_data": "confirm"},
-                            {"text": "✏️ Edit", "callback_data": "edit"},
-                            {"text": "❌ Cancel", "callback_data": "cancel"},
-                        ]
-                    ]
-                },
-            )
-
-    # ---------------- CALLBACK FLOW ----------------
-    elif callback:
-        chat_id = callback["message"]["chat"]["id"]
-        callback_data = callback["data"]
-        # data = pending_actions.get(chat_id)
-        
-        if callback_data == "confirm":
-            ######HERE
-            text = callback.get("message", {}).get("text")
-            data = extract_purchase_data(text)
-            
-            expense = await create_purchase(ExpenseModel(
-                date=data.get("date").split("T")[0],
-                contact_name=data.get("name"),
-                tax_reg_no=data.get("vat_no"),
-                amount=Decimal(str(data.get("amount", 0))),
-            ))
-
-            await telegram.send_message(
-                chat_id=chat_id,
-                text=f"✅ Expense created: {expense.expense_id}"
-            )
-
-            pending_actions.pop(chat_id, None)
-
-        elif callback_data == "edit":
-            print(f"Edit requested: {data}")
-
-        elif callback_data == "cancel":
-            print(f"Cancelled: {data}")
-            pending_actions.pop(chat_id, None)
-
-    return {"ok": True}
+    print(update)
+    return 
