@@ -106,6 +106,7 @@ async def webhook(request: Request):
 
     message = update.get("message")
     callback = update.get("callback_query")
+    photo = update.get("photo", None)
 
     chat_id = None
     text = ""
@@ -145,7 +146,18 @@ async def webhook(request: Request):
                     else "التقط صورة كاملة للفاتورة وأرسلها"
                 )
             )
-        
+    elif photo: 
+        file_id = photo[-1]["file_id"]
+        image_bytes = await telegram.download_file(file_id=file_id)
+
+        if command.startswith("qrcode"):
+            data = await upload_qr_image(image_bytes=image_bytes)
+            print(data)
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=data
+            )
+
     # ---------------- CALLBACK FLOW ----------------
     elif callback:
         chat_id = callback["message"]["chat"]["id"]
