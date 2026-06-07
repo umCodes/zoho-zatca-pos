@@ -131,14 +131,14 @@ async def webhook(request: Request):
             )
         if text.startswith("/qrcode_"):
             command["value"] = "qrcode"
-            lang = text.split("_")[1]
+            lang["value"] = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
                 text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang.startswith("am") else "التقط صورة الرمز وأرسلها")
             )
         if text.startswith("/photo_"):
             command["value"] = "photo"
-            lang = text.split("_")[1]
+            lang["value"] = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
@@ -154,7 +154,7 @@ async def webhook(request: Request):
             print("🪖: ", command)
             if command["value"] and command["value"].startswith("qrcode"):
                 data = await upload_qr_image(image_bytes=image_bytes)
-                print(f"🌍 lang: ", lang)
+                print(f"🌍 lang: ", lang["value"])
                 print("❤️", command, "\n", data)
                 await telegram.send_message(
                     chat_id=chat_id,
