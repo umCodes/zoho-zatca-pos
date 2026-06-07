@@ -100,5 +100,12 @@ pending_actions = {}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
-    print(update)
+    text = update["results"][0]["text"]
+    chat_id = update["results"][0]["message"]["chat"]["id"]
+
+    if text.startswith("/start"):
+        telegram.send_message(
+            chat_id=chat_id,
+            text=f"Hi, {chat_id}"
+        )
     return 
