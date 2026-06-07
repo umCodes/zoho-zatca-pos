@@ -94,22 +94,39 @@ def extract_purchase_data(text: str) -> dict:
 # def oxygen():
 #     start_scheduler()
 
-
 telegram = TelegramService(bot_token=TELEGRAM_BOT_TOKEN)
 pending_actions = {}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
-    print(update)
+    print(f"🔵 Received Telegram update: {update}")
 
-    text = update["results"][0]["text"]
-    chat_id = update["results"][0]["message"]["chat"]["id"]
+    message = update.get("message")
+    callback = update.get("callback_query")
 
-    if text.startswith("/start"):
-        telegram.send_message(
-            chat_id=chat_id,
-            text=f"Hi, {chat_id}"
-        )
-    return {
-        "ok": True
-    }
+    chat_id = None
+    text = ""
+
+    # ---------------- MESSAGE FLOW ----------------
+    if message:
+        chat_id = message["chat"]["id"]
+        text = message.get("text") or message.get("caption") or ""
+
+        if text.startswith("/start"):
+            await telegram.send_message(
+                chat_id=chat_id,
+                text="Hey"
+            )
+
+    # ---------------- CALLBACK FLOW ----------------
+    elif callback:
+        chat_id = callback["message"]["chat"]["id"]
+        callback_data = callback["data"]
+        
+        if callback_data == "confirm":
+            pass
+        elif callback_data == "edit":
+            pass
+        elif callback_data == "cancel":
+            pass
+    return {"ok": True}
