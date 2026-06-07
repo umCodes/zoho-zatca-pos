@@ -106,9 +106,7 @@ async def webhook(request: Request):
 
     message = update.get("message")
     callback = update.get("callback_query")
-    photo = update.get("photo", None)
 
-    print(f"❤️ {message} \n {callback} \n {photo}")
 
     chat_id = None
     text = ""
@@ -118,6 +116,7 @@ async def webhook(request: Request):
     if message:
         chat_id = message["chat"]["id"]
         text = message.get("text") or message.get("caption") or ""
+        photo = message.get("photo", None)
         print(f"✏️ {text}")
         if text.startswith("/start"):
             await telegram.send_message(
@@ -149,18 +148,18 @@ async def webhook(request: Request):
                 )
             )
    
-    if photo: 
-        file_id = photo[-1]["file_id"]
-        image_bytes = await telegram.download_file(file_id=file_id)
+        if photo: 
+            file_id = photo[-1]["file_id"]
+            image_bytes = await telegram.download_file(file_id=file_id)
 
-        if command.startswith("qrcode"):
-            data = await upload_qr_image(image_bytes=image_bytes)
-            print(f"🌍 lang: ", lang)
-            print("❤️", command, "\n", data)
-            await telegram.send_message(
-                chat_id=chat_id,
-                text=data
-            )
+            if command.startswith("qrcode"):
+                data = await upload_qr_image(image_bytes=image_bytes)
+                print(f"🌍 lang: ", lang)
+                print("❤️", command, "\n", data)
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=data
+                )
 
     # ---------------- CALLBACK FLOW ----------------
     elif callback:
