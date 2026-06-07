@@ -108,6 +108,8 @@ async def webhook(request: Request):
     callback = update.get("callback_query")
     photo = update.get("photo", None)
 
+    print(f"❤️ {message} \n {callback} \n {photo}")
+
     chat_id = None
     text = ""
 
@@ -116,7 +118,7 @@ async def webhook(request: Request):
     if message:
         chat_id = message["chat"]["id"]
         text = message.get("text") or message.get("caption") or ""
-
+        print(f"✏️ {text}")
         if text.startswith("/start"):
             await telegram.send_message(
                 chat_id=chat_id,
