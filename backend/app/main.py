@@ -151,7 +151,7 @@ async def webhook(request: Request):
         if photo: 
             file_id = photo[-1]["file_id"]
             image_bytes = await telegram.download_file(file_id=file_id)
-
+            print("🪖: ", command)
             if command.startswith("qrcode"):
                 data = await upload_qr_image(image_bytes=image_bytes)
                 print(f"🌍 lang: ", lang)
