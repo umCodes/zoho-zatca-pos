@@ -117,16 +117,17 @@ async def webhook(request: Request):
 
         AM_QR_INVOICE = "ፎቶ + /qrcode (በQR ኮድ የኢንቮይስ ግቤት)"
         AM_IMG_INVOICE = "ፎቶ + /enter (በፎቶ የኢንቮይስ ግቤት)"
-        
+
         if text.startswith("/start"):
             await telegram.send_message(
                 chat_id=chat_id,
-                text=text(
-                    AM_QR_INVOICE
-                    AR_QR_INVOICE
-                    
-                    AR_IMG_INVOICE
-                    AM_IMG_INVOICE
+                text=(
+                    "Arabic:\n"
+                    "صورة + /qrcode - إدخال الفاتورة عبر QR\n"
+                    "صورة + /enter - إدخال الفاتورة عبر صورة\n\n"
+                    "Amharic:\n"
+                    "ፎቶ + /qrcode - በQR ኮድ ግቤት\n"
+                    "ፎቶ + /enter - በፎቶ ግቤት"
                 )
             )
 
