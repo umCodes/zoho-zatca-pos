@@ -134,7 +134,7 @@ async def webhook(request: Request):
             lang["value"] = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
-                text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang.startswith("am") else "التقط صورة الرمز وأرسلها")
+                text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang["value"].startswith("am") else "التقط صورة الرمز وأرسلها")
             )
         if text.startswith("/photo_"):
             command["value"] = "photo"
@@ -143,7 +143,7 @@ async def webhook(request: Request):
                 chat_id=chat_id,
                 text=(
                     "የደርሰኙን ሙሉ ፎቶውን አንስተው ይላኩ"
-                    if lang.startswith("am")
+                    if lang["value"].startswith("am")
                     else "التقط صورة كاملة للفاتورة وأرسلها"
                 )
             )
