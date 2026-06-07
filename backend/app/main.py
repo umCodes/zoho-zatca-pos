@@ -97,8 +97,8 @@ def extract_purchase_data(text: str) -> dict:
 telegram = TelegramService(bot_token=TELEGRAM_BOT_TOKEN)
 pending_actions = {}
 
-command = None
-lang = None
+command = { "value": None }
+lang = { "value": None }
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
@@ -130,14 +130,14 @@ async def webhook(request: Request):
                 )
             )
         if text.startswith("/qrcode_"):
-            command = "qrcode"
+            command["value"] = "qrcode"
             lang = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
                 text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang.startswith("am") else "التقط صورة الرمز وأرسلها")
             )
         if text.startswith("/photo_"):
-            command = "photo"
+            command["value"] = "photo"
             lang = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
@@ -152,7 +152,7 @@ async def webhook(request: Request):
             file_id = photo[-1]["file_id"]
             image_bytes = await telegram.download_file(file_id=file_id)
             print("🪖: ", command)
-            if command.startswith("qrcode"):
+            if command["value"].startswith("qrcode"):
                 data = await upload_qr_image(image_bytes=image_bytes)
                 print(f"🌍 lang: ", lang)
                 print("❤️", command, "\n", data)
