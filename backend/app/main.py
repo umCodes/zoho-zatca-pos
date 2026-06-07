@@ -122,9 +122,9 @@ async def webhook(request: Request):
     elif callback:
         chat_id = callback["message"]["chat"]["id"]
         callback_data = callback["data"]
-
+        print(callback_data)
         data = pending_actions.get(chat_id)
-
+        print(data)
         if callback_data == "confirm":
             expense = await create_purchase(ExpenseModel(
                 data=data.get("timestamp"),
