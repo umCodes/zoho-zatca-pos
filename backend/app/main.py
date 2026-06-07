@@ -96,6 +96,9 @@ def extract_purchase_data(text: str) -> dict:
 
 telegram = TelegramService(bot_token=TELEGRAM_BOT_TOKEN)
 pending_actions = {}
+
+command = None
+lang = None
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
@@ -107,30 +110,42 @@ async def webhook(request: Request):
     chat_id = None
     text = ""
 
+
     # ---------------- MESSAGE FLOW ----------------
     if message:
         chat_id = message["chat"]["id"]
         text = message.get("text") or message.get("caption") or ""
 
-        AR_QR_INVOICE = "صورة + /qrcode (إدخال الفاتورة عبر QR)"
-        AR_IMG_INVOICE = "صورة + /enter (إدخال الفاتورة عبر صورة)"
-
-        AM_QR_INVOICE = "ፎቶ + /qrcode (በQR ኮድ የኢንቮይስ ግቤት)"
-        AM_IMG_INVOICE = "ፎቶ + /enter (በፎቶ የኢንቮይስ ግቤት)"
-
         if text.startswith("/start"):
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
-                    "Arabic:\n"
-                    "صورة + /qrcode - إدخال الفاتورة عبر QR\n"
-                    "صورة + /enter - إدخال الفاتورة عبر صورة\n\n"
-                    "Amharic:\n"
-                    "ፎቶ + /qrcode - በQR ኮድ ግቤት\n"
-                    "ፎቶ + /enter - በፎቶ ግቤት"
+                    "/qrcode-ar: لإدخال الفاتورة عبر QR\n"
+                    "/photo-ar:  لإدخال الفاتورة عبر صورة كاملة\n\n"
+                    
+                    "/qrcode-am: (በQR ኮድ ደረሰኝ ለማስባት)\n"
+                    "/photo-am: (በሙሉ ፎቶ ደረሰኝ ለማስባት)"
                 )
             )
-
+        if text.startswith("/qrcode-"):
+            command = "qrcode"
+            lang = text.split("-")[1]
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang.startswith("am") else "التقط صورة الرمز وأرسلها")
+            )
+        if text.startswith("/photo-"):
+            command = "photo"
+            lang = text.split("-")[1]
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=(
+                    "የደርሰኙን ሙሉ ፎቶውን አንስተው ይላኩ"
+                    if lang.startswith("am")
+                    else "التقط صورة كاملة للفاتورة وأرسلها"
+                )
+            )
+        
     # ---------------- CALLBACK FLOW ----------------
     elif callback:
         chat_id = callback["message"]["chat"]["id"]
