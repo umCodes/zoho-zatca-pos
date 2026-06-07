@@ -10,7 +10,7 @@ class ExpenseModel(BaseModel):
     paid_through_account_id: str = "46324000000000323"
     vendor_id: Optional[str] = None
     contact_name: Optional[str] = None
-    reference_number: str
+    reference_number: Optional[str] = None
     
     tax_treatment: Literal["vat_registered", "vat_not_registered"] = "vat_not_registered"
     tax_id: Optional[str] = "46324000000043661"

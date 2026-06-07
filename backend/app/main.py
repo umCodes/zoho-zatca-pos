@@ -21,7 +21,8 @@ from app.services.telegram_services import TelegramService
 
 from app.models.expenses_models import ExpenseModel
 
-import httpx
+from decimal import Decimal
+
 
 import sys
 import os
@@ -127,10 +128,10 @@ async def webhook(request: Request):
         print(data)
         if callback_data == "confirm":
             expense = await create_purchase(ExpenseModel(
-                data=data.get("timestamp"),
+                date=data.get("timestamp"),
                 contact_name=data.get("seller"),
                 tax_reg_no=data.get("vat_number"),
-                amount=float(data.get("total", 0)),
+                amount=Decimal(str(data.get("total", 0))),
             ))
 
             await telegram.send_message(
