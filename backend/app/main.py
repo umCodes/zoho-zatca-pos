@@ -99,6 +99,7 @@ pending_actions = {}
 
 command = { "value": "" }
 lang = { "value": "" }
+current = { "value": ""}
 @app.post("/telegram/webhook")
 async def webhook(request: Request):
     update = await request.json()
@@ -154,12 +155,17 @@ async def webhook(request: Request):
             print("🪖: ", command)
             if command["value"] and command["value"].startswith("qrcode"):
                 data = await upload_qr_image(image_bytes=image_bytes)
-                print(f"🌍 lang: ", lang["value"])
-                print("❤️", command, "\n", data)
+                purchase = data["data"]
                 await telegram.send_message(
                     chat_id=chat_id,
-                    text=data
-                )
+                    text=(
+                        f"{'አቅራቢ: ' + purchase['seller'] if lang == 'am' else purchase['seller'] + ' :المورد'}\n"
+                        f"{'VAT: ' + purchase['vat_number'] if lang == 'am' else purchase['vat_number'] + ' :الرقم الضريبي'}\n"
+                        f"{'ጠቅላላ: ' + str(purchase['total']) if lang == 'am' else str(purchase['total']) + ' :الإجمالي'}\n"
+                        f"{'VAT: ' + str(purchase['vat_amount']) if lang == 'am' else str(purchase['vat_amount']) + ' :ضريبة القيمة المضافة'}"
+                    )
+                )                
+                current["value"] = purchase
 
     # ---------------- CALLBACK FLOW ----------------
     elif callback:
