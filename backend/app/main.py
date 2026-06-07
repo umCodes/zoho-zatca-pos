@@ -126,10 +126,10 @@ async def webhook(request: Request):
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
-                    f"Name: {data.get('seller', 'N/A')}\n"
-                    f"Amount: {data.get('total', 'N/A')}\n"
-                    f"Date: {data.get('timestamp', 'N/A').split("T")[0]}\n"
-                    f"VAT No: {data.get('vat_number', 'N/A')}\n"
+                    f"Name: {data.get('name', 'N/A')}\n"
+                    f"Amount: {data.get('amount', 'N/A')}\n"
+                    f"Date: {data.get('date', 'N/A').split("T")[0]}\n"
+                    f"VAT No: {data.get('vat_no', 'N/A')}\n"
                 ),
                 reply_markup={
                     "inline_keyboard": [
