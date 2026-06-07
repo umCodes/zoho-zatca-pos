@@ -120,23 +120,23 @@ async def webhook(request: Request):
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
-                    "/qrcode-ar: لإدخال الفاتورة عبر QR\n"
-                    "/photo-ar:  لإدخال الفاتورة عبر صورة كاملة\n\n"
+                    "/qrcode_ar: لإدخال الفاتورة عبر QR\n"
+                    "/photo_ar:  لإدخال الفاتورة عبر صورة كاملة\n\n"
                     
-                    "/qrcode-am: (በQR ኮድ ደረሰኝ ለማስባት)\n"
-                    "/photo-am: (በሙሉ ፎቶ ደረሰኝ ለማስባት)"
+                    "/qrcode_am: (በQR ኮድ ደረሰኝ ለማስባት)\n"
+                    "/photo_am: (በሙሉ ፎቶ ደረሰኝ ለማስባት)"
                 )
             )
-        if text.startswith("/qrcode-"):
+        if text.startswith("/qrcode_"):
             command = "qrcode"
-            lang = text.split("-")[1]
+            lang = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
                 text=("QR ኮድ ፎቶ አንስተው ያስገቡ" if lang.startswith("am") else "التقط صورة الرمز وأرسلها")
             )
-        if text.startswith("/photo-"):
+        if text.startswith("/photo_"):
             command = "photo"
-            lang = text.split("-")[1]
+            lang = text.split("_")[1]
             await telegram.send_message(
                 chat_id=chat_id,
                 text=(
