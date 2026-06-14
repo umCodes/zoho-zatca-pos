@@ -4,15 +4,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 CLIENT_ID = os.getenv("ZOHO_CLIENT_ID")
 CLIENT_SECRET = os.getenv("ZOHO_CLIENT_SECRET")
-PASSWORD = os.getenv("PASSWORD")
-ENV = os.getenv("ENV", "dev")
-FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
-RENDER_URL = os.getenv("RENDER_URL", "http://127.0.0.1:8080")
+ZOHO_BASE_URL = os.getenv("ZOHO_BASE_URL")
 
-# DB_NAME = os.getenv("DB_NAME", "zoho-reference-db")
-# DB_PASSWORD= os.getenv("DB_PASSWORD")
+ORGANIZATION_ID = os.getenv("ORGANIZATION_ID")
+
+
+PASSWORD = os.getenv("PASSWORD")
+
+ENV = os.getenv("ENV", "dev")
+
+FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
+SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:8080")
 
 DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 TELEGRAM_BOT_TOKEN= os.getenv("TELEGRAM_BOT_TOKEN")

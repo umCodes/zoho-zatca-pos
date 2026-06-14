@@ -8,7 +8,6 @@ import zxingcpp
 
 def extract_info(qr_string: str) -> dict:
     data = base64.b64decode(qr_string)
-    print(data)
     i = 0
     result = {}
 
@@ -20,6 +19,7 @@ def extract_info(qr_string: str) -> dict:
         try:
             value = value_bytes.decode("utf-8")
         except UnicodeDecodeError:
+            print(" * UnicodeDecodeError")
             value = value_bytes
 
         if tag == 1:
@@ -38,30 +38,37 @@ def extract_info(qr_string: str) -> dict:
             result[f"tag_{tag}"] = value
 
         i += 2 + length
+    if result:
+        print(" * Data Extracted from QR Code Result")
 
     return result
 
 
 
+def decode_qr_code(img_bytes: bytes):
+    try:
+        print("Decoding QR Photo Bytes...")
 
-def decode_qr_code(b64_string: str):
+        # bytes → numpy array
+        img_array = np.frombuffer(img_bytes, dtype=np.uint8)
 
-    if "," in b64_string:
-        b64_string = b64_string.split(",")[1]
+        # decode image 
+        img = cv2.imdecode(img_array, cv2.COLOR_BGR2GRAY)
+        img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
-    # decode base64 → bytes
-    img_bytes = base64.b64decode(b64_string)
+        if img is None:
+            print("Error: Failed to decode image")
+            return {"data": None}
 
-    # convert bytes → numpy array
-    img_array = np.frombuffer(img_bytes, dtype=np.uint8)
+        results = zxingcpp.read_barcodes(img, formats=[zxingcpp.BarcodeFormat.QRCode])
 
-    # decode image
-    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-
-    results = zxingcpp.read_barcodes(img)
-    for r in results:
-        if r.text:
-            return {
-                "data": extract_info(r.text)
-            }
-    return { "data": None }
+        for r in results:
+            if r.text:
+                print(" * Result Found from QR Code ")
+                return {
+                    "data": extract_info(r.text)
+                }
+        return {"data": None}
+    except Exception as e:
+        print("Error: ", e)
+        return {"data": None}
