@@ -9,7 +9,7 @@ async def validate_password(request: Request, call_next):
         return await call_next(request)
     
     print(f"Validating password for path: {request.url.path}")
-    if request.url.path in ["/docs", "/openapi.json", "/redoc", "/check_password", "/health", "/upload", "/read_qr", "/expenses", "/vendors", "/webhook/telegram"] or re.match(r"^/invoice/.*/pdf$", request.url.path):
+    if request.url.path in ["/push-invoices", "/docs", "/openapi.json", "/redoc", "/check_password", "/health", "/upload", "/read_qr", "/expenses", "/vendors", "/webhook/telegram"] or re.match(r"^/invoice/.*/pdf$", request.url.path):
         return await call_next(request)
 
     if request.headers.get("x-password") != PASSWORD:

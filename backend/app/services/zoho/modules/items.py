@@ -28,7 +28,6 @@ async def get_items():
             break
 
         res = await zoho_client.request(path="/items", params={"page": page, "per_page": per_page})
-        print(res)
         data = res.json()
         items = data.get("items", [])
 
@@ -38,5 +37,4 @@ async def get_items():
 
         page += 1
     all_items = filter_list_fields(all_items, ITEM_FIELDS)
-    print(all_items)
     return all_items

@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import health, invoices, telegram, items, pdf, check_password
+from app.routes import health, invoices, telegram, items, pdf, check_password, fatoora
 
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
 from app.core.config import ENV, FRONTEND_DOMAIN
+from app.routes import fatoora
 
 
 app = FastAPI()
@@ -39,3 +40,4 @@ app.include_router(router=invoices.router)
 app.include_router(router=telegram.router)
 app.include_router(router=items.router)
 app.include_router(router=pdf.router)
+app.include_router(router=fatoora.router)
