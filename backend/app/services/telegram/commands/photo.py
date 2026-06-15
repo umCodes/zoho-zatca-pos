@@ -45,7 +45,7 @@ async def photo(update, user):
                 "📄 معلومات الفاتورة\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
                 f"🏪 البائع: {qr["data"]['seller']}\n"
-                f"🧾 VAT: {qr["data"]['vat_number']}\n"
+                f"🧾 الرقم الضريبي: {qr["data"]['vat_number']}\n"
                 f"📅 التاريخ: {qr["data"]['timestamp'].split('T')[0]}\n"
                 f"💰 الإجمالي: SAR {qr["data"]['total']}"
             )
