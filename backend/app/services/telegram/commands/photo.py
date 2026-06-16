@@ -109,8 +109,11 @@ async def full_ai_scan(update, user):
         user["last_data"] = data
     except Exception as e:
         await telegram.send_message(chat_id=chat_id, text=(
-            "ስህተት ተፈጥሯል። እንደገና ይሞክሩ። ❌" if user.get("language") == "am"
-            else "\u200F" + "حدث خطأ أثناء معالجة الصورة. ❌"
+            "ስህተት ተፈጥሯል። እንደገና ይሞክሩ። ❌\n\n"
+            "ወይም QR Code ፎቶ ይጠቀሙ።"
+            if user.get("language") == "am"
+            else "\u200F" + "حدث خطأ أثناء معالجة الصورة. ❌\n\n"
+                "أو استخدم مسح رمز QR بدلاً من ذلك."
         ))
         print("Except: ", e)
         return
