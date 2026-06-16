@@ -8,51 +8,45 @@ async def confirm_entry(update, user):
     print("Applying Confirm Entry State...")
     try:
         chat_id = update["message"]["chat"]["id"]
-        text = update["message"]["text"]
+        text = update["message"].get("text") 
     except (KeyError, TypeError) as e:
         print("Confirm Entry Error: ", e)
         return
-
     is_amharic = user.get("language") == "am"
-    qr = user.get("last_qr")
+    data = user.get("last_data")
     user["state"] = None
-
-    if not qr:
-        await telegram.send_message(chat_id=chat_id, text="No QR data found.")
+    if not data:
+        await telegram.send_message(chat_id=chat_id, text=(
+            "ምንም መረጃ አልተገኘም። ❌" if is_amharic else "\u200F" + "لم يتم العثور على بيانات. ❌"
+        ))
         return
-
-    for key in telegram.commands.keys():
-        if text.startswith(key):
-            await telegram.send_message(chat_id=chat_id, text="Invalid Purchase Invoice Id")
-            return
-
+    if "reference_number" not in data:
+        data["reference_number"] = text
     try:
         expense = await create_expense(expense=CreateExpenseZoho(
-            tax_reg_no=qr["vat_number"],
-            contact_name=qr["seller"],
-            amount=qr["total"],
-            reference_number=text,
-            date=qr["timestamp"].split("T")[0]
+            tax_reg_no=data["tax_reg_no"],
+            contact_name=data["contact_name"],
+            amount=data["amount"],
+            reference_number=data["reference_number"],
+            date=data["date"].split("T")[0]
         ))
         print("Expense: ", expense)
-
         error = expense.get("error", "")
         if isinstance(error, str) and error.startswith("Expense already exists"):
             await telegram.send_message(chat_id=chat_id, text=(
                 "ℹ️ የግዢ ደረሰኝ ከሁን በፊት ገብቷል።" if is_amharic else "ℹ️ الفاتورة موجودة مسبقاً"
             ))
             return        
+        
         if not expense.get("ok"):
             print(" * Expense Not OK: ", expense)
             raise Exception(expense)
         
-
         await telegram.send_message(chat_id=chat_id, text=(
-            f"የግዥ ደረሰኝ ቁጥር {text} በትክክል ገብቷል ✅"
+            f"የግዥ ደረሰኝ ቁጥር {data['reference_number']} በትክክል ገብቷል ✅"
             if is_amharic else
-            "\u200F" + f"تم انشاء فاتورة المشتريات رقم {text} بنجاح ✅"
+            "\u200F" + f"تم انشاء فاتورة المشتريات رقم {data['reference_number']} بنجاح ✅"
         ))
-
     except Exception as e:
         print("- Expense Error: ", e)
         await telegram.send_message(chat_id=chat_id, text=(
@@ -60,7 +54,4 @@ async def confirm_entry(update, user):
         ))
         return
     finally:
-        user["last_qr"] = None
-
-
-
+        user["last_data"] = None

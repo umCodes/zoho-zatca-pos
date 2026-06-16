@@ -53,6 +53,7 @@ async def Gemini(prompt: str, img: str = None):
         async with httpx.AsyncClient(timeout=120.0) as client:
             res = await client.post(URL,headers=headers,json=(body))
             data = res.json()
+            print(data)
             if "candidates" not in data:
                 raise ValueError(f"Gemini API error: {data['candidates'][0].get('output', {}).get('content', 'No content in response')}")
             return data["candidates"][0]["content"]["parts"][0]["text"]

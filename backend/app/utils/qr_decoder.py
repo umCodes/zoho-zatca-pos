@@ -41,7 +41,12 @@ def extract_info(qr_string: str) -> dict:
     if result:
         print(" * Data Extracted from QR Code Result")
 
-    return result
+    return {
+        "contact_name": result.get("seller", ""),
+        "tax_reg_no": result.get("vat_number", ""),
+        "date": result.get("timestamp", ""),
+        "amount": result.get("total", 0)
+    }
 
 
 

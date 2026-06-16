@@ -15,8 +15,8 @@ async def start(update, user):
             return        
         
         responses = {
-            "am": "የደረሰኝ QR ኮድ ፎቶ ይላኩ።",
-            "ar":  "\u200Fارسل رمز ال\"QR\" الخاص بالفاتورة."
+            "am": "የደረሰኝ QR ኮድ ወይስ ሙሉ ፎቶ ይላኩ።",
+            "ar": "\u200F" + "أرسل رمز ال QR أو صورة كاملة للفاتورة."
         }
         BASE_DIR = Path(__file__).resolve().parents[4]  # adjust if needed
         IMAGE_PATH = BASE_DIR / "uploads" / "qr.jpg"
