@@ -34,14 +34,27 @@ async def confirm_entry(update, user):
             reference_number=text,
             date=qr["timestamp"].split("T")[0]
         ))
-        if expense["error"] == "Expense already exists" or expense["error"] == "Expense already exists":
+        print("Expense: ", expense)
+
+        error = expense.get("error", "")
+        if isinstance(error, str) and error.startswith("Expense already exists"):
             await telegram.send_message(chat_id=chat_id, text=(
                 "ℹ️ የግዢ ደረሰኝ ከሁን በፊት ገብቷል።" if is_amharic else "ℹ️ الفاتورة موجودة مسبقاً"
             ))
-            return
+            return        
+        if not expense.get("ok"):
+            print(" * Expense Not OK: ", expense)
+            raise Exception(expense)
         
 
-    except Exception:
+        await telegram.send_message(chat_id=chat_id, text=(
+            f"የግዥ ደረሰኝ ቁጥር {text} በትክክል ገብቷል ✅"
+            if is_amharic else
+            "\u200F" + f"تم انشاء فاتورة المشتريات رقم {text} بنجاح ✅"
+        ))
+
+    except Exception as e:
+        print("- Expense Error: ", e)
         await telegram.send_message(chat_id=chat_id, text=(
             "ሂደቱ ተቋርጧል ❌" if is_amharic else "فشلت العملية ❌"
         ))
@@ -49,15 +62,5 @@ async def confirm_entry(update, user):
     finally:
         user["last_qr"] = None
 
-    if not expense.get("ok"):
-        await telegram.send_message(chat_id=chat_id, text=(
-            "ሂደቱ ተቋርጧል ❌" if is_amharic else "فشلت العملية ❌"
-        ))
-        return
 
-    await telegram.send_message(chat_id=chat_id, text=(
-        f"የግዥ ደረሰኝ ቁጥር {text} በትክክል ገብቷል ✅"
-        if is_amharic else
-        "\u200F" + f"تم انشاء فاتورة المشتريات رقم {text} بنجاح ✅"
-    ))
 

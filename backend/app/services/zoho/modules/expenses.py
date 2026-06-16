@@ -67,100 +67,58 @@ async def get_expense(id: str):
 async def is_expense_exists(expense: CreateExpenseZoho):
 
     print("- Checking if Expense exists in Zoho (by reference_number)...")
-
     print("   * reference_number_contains:", expense.reference_number)
-
     try:
-
         response = await zoho_client.request(
-
             path="/expenses",
-
             include_org_id=True,
-
             params={
-
                 "reference_number_contains": expense.reference_number,
-
             },
-
         )
 
         expenses = response.json().get("expenses")
-
         if expenses:
-
             return {
-
                 "ok": True,
-
                 "expense": expenses[0],
-
             }
-
         return False
-
     except Exception as e:
-
         print("Is Expense Exists Error:", e)
-
         return {
-
             "ok": False,
-
             "error": e,
-
         }
 
 async def is_expense_exists_by_description(expense: CreateExpenseZoho):
 
     print("- Checking if Expense exists in Zoho (by description fingerprint)...")
-
     fingerprint = expense.build_description_fingerprint()
-
     print("   * description_contains:", fingerprint)
-
     try:
-
         response = await zoho_client.request(
-
             path="/expenses",
-
             include_org_id=True,
-
             params={
-
                 "description_contains": fingerprint,
-
             },
-
         )
-
         expenses = response.json().get("expenses")
-
         if expenses:
-
             return {
-
                 "ok": True,
-
                 "expense": expenses[0],
-
             }
-
         return False
 
     except Exception as e:
-
         print("Is Expense Exists By Description Error:", e)
-
         return {
-
             "ok": False,
-
             "error": e,
-
         }
+    
 
 async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
     print("- Creating Expense in Zoho...")
@@ -169,7 +127,7 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
 
     # Build description fingerprint BEFORE stringifying
     expense.description = expense.build_description_fingerprint()
-
+    expense.date = expense.date.split("T")[0]
     # Check by description fingerprint first (higher confidence)
     is_exists_by_desc = await is_expense_exists_by_description(expense)
     if is_exists_by_desc:
@@ -192,10 +150,11 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
         json=expense.model_dump(),
         include_org_id=True
     )
-
+    
     data = response.json()
 
     if data.get("code") != 0 or not data.get("expense"):
+        print("- Failed to create expense in Zoho.")
         return {"ok": False, "error": data}
 
     filtered = filter_fields(

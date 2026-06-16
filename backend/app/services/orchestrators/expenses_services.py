@@ -28,7 +28,7 @@ async def create_expense(expense: CreateExpenseZoho):
     print("- Creating Expense...")
     # Intiate database connection
     db = next(get_db())
-
+    expense.date = expense.date.split("T")[0]
     # Create or Find Vendor
     vendor = await resolve_vendor(db, expense)
     print("vendor: ", json.dumps(vendor, indent=2))
@@ -43,8 +43,10 @@ async def create_expense(expense: CreateExpenseZoho):
     # Save Expense to Database
     saved = save_expense_to_db(db, zoho_expense["expense"])
     if not isinstance(saved, Expense):
+        print(" * Not instance of Expense: Expense Already Exists")
         return saved
 
+    print("Returning Successfully Created Expense...")
     return {
         "ok": True,
         "expense": zoho_expense["expense"]

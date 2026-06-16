@@ -27,7 +27,7 @@ def extract_info(qr_string: str) -> dict:
         elif tag == 2:
             result["vat_number"] = value
         elif tag == 3:
-            result["timestamp"] = value
+            result["timestamp"] = value.split(" ")[0]
         elif tag == 4:
             result["total"] = float(value)
         elif tag == 5:

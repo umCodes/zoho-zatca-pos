@@ -6,6 +6,7 @@ from app.database.services import get_contact_by_tax_reg_no_db, create_contact_d
 
 from app.services.zoho.modules.contacts import create_contact_in_zoho
 
+import json
 
 async def resolve_vendor(db, expense: CreateExpenseZoho):
     print("- Resolving Vendor...")
@@ -17,6 +18,7 @@ async def resolve_vendor(db, expense: CreateExpenseZoho):
 
     # If vendor doesn't exist and contact_name not provided, return error
     if not expense.contact_name:
+        print(" * Vendor doesn't exist. Provide contact_name to create vendor. (contact_name not provided)")
         return {
             "ok": False,
             "from": "db",
@@ -32,8 +34,12 @@ async def resolve_vendor(db, expense: CreateExpenseZoho):
     ))
     # If zoho creation failed, return error
     if created["ok"] is False:
+        print(" * Failed to create vendor in Zoho")
         return created
 
     # Save vendor to database and return vendor as dict
     vendor = create_contact_db(db, contact=ContactCreate(**created["contact"]))
-    return vendor.model_dump()
+    json_data = json.loads(json.dumps({k: v for k, v in vendor.__dict__.items() if not k.startswith("_")}, ensure_ascii=False, default=str))
+
+    print("Vendor Created Successfully: ", json_data)
+    return {"ok": True, "contact_id": vendor.contact_id}

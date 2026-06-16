@@ -53,14 +53,19 @@ async def migrate_all_vendors_from_zoho(db: Session):
 
 
 def create_expense_db(db: Session, expense: ExpenseCreate):
+    print("- Creating Expense in Database...")
     exists = get_expense_by_reference_number_db(db=db, reference_number=expense.reference_number)
+    
     if exists:
+        print(" * Expense already exists.")
         return {"error": "Expense already exists", "source": "db", "expense_id": expense.expense_id}
     
     db_expense = Expense(**expense.model_dump())
     db.add(db_expense)
     db.commit()
     db.refresh(db_expense)
+
+    print(" * Expense created successfully in Database.")
     return db_expense
 
 def get_expenses_db(db: Session):

@@ -21,7 +21,7 @@ class ZohoClient:
             params["organization_id"] = self.organization_id
 
         async with httpx.AsyncClient() as client:
-
+            print(f"- Requesting {method} to {url}...")
             return await client.request(
                 url=url,
                 method=method,
