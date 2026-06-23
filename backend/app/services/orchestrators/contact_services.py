@@ -1,6 +1,7 @@
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.services.zoho.models.contacts_models import CreateContactZoho
 
+from app.database.setup import SessionLocal
 from app.database.schemas import ContactCreate
 from app.database.services import get_contact_by_tax_reg_no_db, create_contact_db
 
