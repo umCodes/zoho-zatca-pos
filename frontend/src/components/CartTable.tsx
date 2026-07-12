@@ -7,45 +7,39 @@ import SpinnerButton from "./SpinnerButton";
 import AlertModal from "./AlertModal";
 import { usePassword } from "../context/PasswordContext";
 import { apiUrl } from "../env";
-
+import { PaymentMethodModal } from "./PaymentMethodModal"
 // ── Types ─────────────────────────────────────────────────────────────────────
-
 type PaymentMethod = "Cash" | "Credit Card";
-
+type PendingAction = "submit" | "print" | null;
 interface RawInputs {
   qty: string;
   rate: string;
 }
-
 interface CartTableProps {
   title?: string;
 }
-
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function CartTable({ title = "Order Summary" }: CartTableProps) {
+  const [ paymentModal, setPaymentModal ] = useState(false);
+  const [ pendingAction, setPendingAction ] = useState<PendingAction>(null);
   const { password } = usePassword()
   const { cart, setCart, removeFromCart } = useCart();
   const { t } = useLocale();
-
   const [isLoading, setIsLoading] = useState(false);
-  const [payment, setPayment] = useState<PaymentMethod>("Cash");
+  // const [payment, setPayment] = useState<PaymentMethod>("Cash");
   const [validationError, setValidationError] = useState<string | null>(null);
-
   // ── Alert modal state ────────────────────────────────────────────────────
   const [alertOpen, setAlertOpen] = useState(false);
   const [invoiceResult, setInvoiceResult] = useState<{
     invoice_id: string;
     invoice_number: string;
   } | null>(null);
-
   const [rawInputs, setRawInputs] = useState<Record<string, RawInputs>>({});
-
   const resetCart = () => {
     setCart([]);
     setRawInputs({});
     setValidationError(null);
   };
-
   useEffect(() => {
     setRawInputs((prev) => {
       const next: Record<string, RawInputs> = {};
@@ -58,14 +52,12 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
       return next;
     });
   }, [cart]);
-
   // ── Input handlers ───────────────────────────────────────────────────────
   const handleChange = (id: string, field: keyof RawInputs, raw: string) => {
     setRawInputs((prev) => ({
       ...prev,
       [id]: { ...prev[id], [field]: raw },
     }));
-
     const n = parseFloat(raw);
     if (!isNaN(n)) {
       setCart((prev) =>
@@ -75,40 +67,34 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
       );
     }
   };
-
   // ── Validation ───────────────────────────────────────────────────────────
   function runValidation(): boolean {
     if (cart.length === 0) {
       setValidationError(t.validationEmptyCart);
       return false;
     }
-
     const invalidLines = cart.filter((entry) => {
       const qty = parseFloat(rawInputs[entry.line_id]?.qty ?? "");
       return isNaN(qty) || qty < 0.01;
     });
-
     if (invalidLines.length > 0) {
       const names = invalidLines.map((l) => l.name).join(", ");
       setValidationError(t.validationInvalidQty(names));
       return false;
     }
-
     setValidationError(null);
     return true;
   }
-
   // ── Invoice helpers ──────────────────────────────────────────────────────
   const buildPayload = () =>
     cart.map(({ item_id, rate, qty }) => ({ item_id, rate, quantity: qty }));
-  
 
-  async function submitInvoice(): Promise<{
+  async function submitInvoice(method: PaymentMethod): Promise<{
     invoice_id: string;
     invoice_number: string;
   }> {
     const response = await fetch(
-      `${apiUrl}/invoices/walk-in?method=${payment}`,
+      `${apiUrl}/invoices/walk-in?method=${method}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json","x-password": password || "" },
@@ -118,7 +104,6 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.json();
   }
-
   /** Opens the PDF for the last submitted invoice in a new tab. */
   const handlePrintInvoice = () => {
     if (!invoiceResult) return;
@@ -128,17 +113,14 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
     );
     setAlertOpen(false);
   };
-
   const handleAlertOk = () => {
     setAlertOpen(false);
     setInvoiceResult(null);
   };
-
-  async function createInvoice() {
-    if (!runValidation()) return;
+  async function createInvoice(method: PaymentMethod) {
     setIsLoading(true);
     try {
-      const data = await submitInvoice();
+      const data = await submitInvoice(method);
       resetCart();
       setInvoiceResult(data);
       setAlertOpen(true);
@@ -148,18 +130,16 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
       setIsLoading(false);
     }
   }
-
-  async function createInvoiceNPrint() {
-    if (!runValidation()) return;
+  async function createInvoiceNPrint(method: PaymentMethod) {
     setIsLoading(true);
     try {
-      const data = await submitInvoice();
+      const data = await submitInvoice(method);
       resetCart();
       setInvoiceResult(data);
       setAlertOpen(true);
       // Auto-open PDF immediately, modal still shows for a second print if needed
       window.open(
-        `http://127.0.0.1:8000/invoice/${data.invoice_id}/pdf`,
+        `${apiUrl}/invoice/${data.invoice_id}/pdf`,
         "_blank"
       );
     } catch (err) {
@@ -168,15 +148,35 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
       setIsLoading(false);
     }
   }
-
+  // ── Submit entry points ──────────────────────────────────────────────────
+  // Validate first, then defer to the payment modal — the actual invoice
+  // creation only fires once a method is chosen, in handlePaymentSelect.
+  function handleSubmitClick() {
+    if (!runValidation()) return;
+    setPendingAction("submit");
+    setPaymentModal(true);
+  }
+  function handlePrintClick() {
+    if (!runValidation()) return;
+    setPendingAction("print");
+    setPaymentModal(true);
+  }
+  function handlePaymentSelect(method: PaymentMethod) {
+    // setPayment(method);
+    setPaymentModal(false);
+    if (pendingAction === "print") {
+      createInvoiceNPrint(method);
+    } else if (pendingAction === "submit") {
+      createInvoice(method);
+    }
+    setPendingAction(null);
+  }
   // ── Totals ───────────────────────────────────────────────────────────────
   const total = cart.reduce((sum, e) => sum + e.rate * e.qty, 0);
   const subtotal = total / 1.15;
   const taxAmount = total - subtotal;
-
   const fmt = (n: number) =>
     n.toLocaleString("en-US", { style: "currency", currency: t.currency });
-
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="cart-root">
@@ -188,9 +188,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
           </div>
         </div>
       )}
-
       <p className="cart-title">{title}</p>
-
       {/* ── Items table ── */}
       <div className="table-wrapper">
         <table className="cart-table">
@@ -210,7 +208,6 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
               const isInvalidRow =
                 !!validationError && (isNaN(parsedQty) || parsedQty < 1);
               const lineTotal = entry.rate * entry.qty;
-
               return (
                 <tr
                   key={entry.line_id}
@@ -222,7 +219,6 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
                     <span className="item-description">{entry.description}</span>
                     <span className="item-tax">{t.vatPercent}</span>
                   </td>
-
                   <td>
                     <input
                       className={`cell-input cell-input--qty${isInvalidRow ? " cell-input--error" : ""}`}
@@ -237,7 +233,6 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
                     />
                     <span className="cell-input-suffix">{entry.unit}</span>
                   </td>
-
                   <td className="cell-price">
                     <div className="cell-price-wrap">
                       <span className="cell-input-prefix">{t.currency}</span>
@@ -257,9 +252,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
                       </span>
                     </div>
                   </td>
-
                   <td className="cell-total">{fmt(lineTotal)}</td>
-
                   <td>
                     <button
                       className="remove-btn"
@@ -275,7 +268,6 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
           </tbody>
         </table>
       </div>
-
       {/* ── Footer ── */}
       <div className="cart-footer">
         <div className="cart-summary">
@@ -291,8 +283,7 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
             <span>{t.grandTotal}</span>
             <span>{fmt(total)}</span>
           </div>
-
-          <div
+          {/* <div
             className="payment-toggle"
             role="group"
             aria-label={t.ariaPaymentMethod}
@@ -315,34 +306,39 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
               <FaCreditCard size={16} />
               <span>{t.card}</span>
             </button>
-          </div>
-
+          </div> */}
           {validationError && (
             <div className="validation-error" role="alert">
               <span className="validation-error__icon">!</span>
               <span>{validationError}</span>
             </div>
           )}
-
           <div className="submit-root">
             <SpinnerButton
               className="submit-n-print-btn"
               disabled={isLoading}
-              onClick={createInvoiceNPrint}
+              onClick={handlePrintClick}
               loadingLabel={t.submitNPrintOrder}
               label={t.submitNPrintOrder}
             />
             <SpinnerButton
               className="submit-btn"
               disabled={isLoading}
-              onClick={createInvoice}
+              onClick={handleSubmitClick}
               loadingLabel={t.submitOrder}
               label={t.submitOrder}
             />
           </div>
         </div>
       </div>
-
+      <PaymentMethodModal
+          isOpen={paymentModal}
+          onClose={() => {
+            setPaymentModal(false);
+            setPendingAction(null);
+          }}
+          onSelect={handlePaymentSelect}
+      />
       {/* ── Alert modal ── */}
       <AlertModal
         isOpen={alertOpen}

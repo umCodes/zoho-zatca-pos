@@ -3,7 +3,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 
 interface SpinnerButtonProps {
-    onClick: () => Promise<void>;
+    onClick: () => void;
     label: string;
     loadingLabel: string;
     disabled?: boolean;

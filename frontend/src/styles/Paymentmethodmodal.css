@@ -1,0 +1,110 @@
+.payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  height: 100vh;
+}
+
+.payment-modal {
+  width: 100%;
+  max-width: 28rem;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.payment-modal__title {
+  margin-bottom: 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.payment-modal__subtitle {
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.payment-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.payment-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.payment-card:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.payment-card--cash:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.payment-card--card:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.payment-card__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  transition: transform 0.15s ease;
+}
+
+.payment-card--cash .payment-card__icon {
+  color: #059669;
+}
+
+.payment-card--card .payment-card__icon {
+  color: #2563eb;
+}
+
+.payment-card:hover .payment-card__icon {
+  transform: scale(1.1);
+}
+
+.payment-card__label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.payment-modal__cancel {
+  width: 100%;
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: black;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+}
+
+.payment-modal__cancel:hover {
+  background: #303030;
+}

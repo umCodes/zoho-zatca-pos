@@ -25,6 +25,9 @@ export interface Translations {
   paymentMethod: string;
   cash: string;
   card: string;
+  selectPaymentMethod: string;
+  paymentModalSubtitle: string;
+  changePaymentMethod: string;
   // Validation
   validationEmptyCart: string;
   validationInvalidQty: (names: string) => string;
@@ -37,15 +40,13 @@ export interface Translations {
   currency: string;
   // Misc
   per: string;
-
   ok: string;
   print: string;
-
+  cancel: string;
   loadingItems: string,
   itemsLoadError: string,
   noResults: string,
 }
-
 const en: Translations = {
   appTitle: "Simple Zoho POS",
   searchItem: "Search Item",
@@ -69,6 +70,9 @@ const en: Translations = {
   paymentMethod: "Payment Method",
   cash: "Cash",
   card: "Card",
+  selectPaymentMethod: "Choose payment method",
+  paymentModalSubtitle: "Select how the customer will pay.",
+  changePaymentMethod: "Change",
   validationEmptyCart: "Cart is empty. Add at least one item before submitting.",
   validationInvalidQty: (names) => `Quantity must be at least 0.01 for: ${names}`,
   ariaQuantity: "Quantity",
@@ -79,13 +83,11 @@ const en: Translations = {
   per: "/",
   ok: "OK",
   print: "Print",
-
-
+  cancel: "Cancel",
   loadingItems: "Loading items…",
   itemsLoadError: "Failed to load items. Please refresh.",
   noResults: "No results found",
 };
-
 const ar: Translations = {
   appTitle: "نقطة بيع زوهو البسيطة",
   searchItem: "ابحث عن صنف",
@@ -109,6 +111,9 @@ const ar: Translations = {
   paymentMethod: "طريقة الدفع",
   cash: "نقداً",
   card: "بطاقة",
+  selectPaymentMethod: "اختر طريقة الدفع",
+  paymentModalSubtitle: "حدد طريقة دفع العميل.",
+  changePaymentMethod: "تغيير",
   validationEmptyCart: "السلة فارغة. أضف صنفاً واحداً على الأقل قبل التأكيد.",
   validationInvalidQty: (names) => `يجب أن تكون الكمية 0.01 على الأقل للأصناف التالية: ${names}`,
   ariaQuantity: "الكمية",
@@ -119,12 +124,11 @@ const ar: Translations = {
   per: "/",
   ok: "OK",
   print: "Print",
-
+  cancel: "إلغاء",
   loadingItems: "جارٍ تحميل العناصر…",
   itemsLoadError: "فشل تحميل العناصر. يرجى التحديث.",
   noResults: "لا توجد نتائج",
 };
-
 const am: Translations = {
   appTitle: "Simple Zoho POS",
   searchItem: "ዕቃ ፈልግ",
@@ -148,6 +152,9 @@ const am: Translations = {
   paymentMethod: "የክፍያ ዘዴ",
   cash: "ጥሬ ገንዘብ",
   card: "ካርድ",
+  selectPaymentMethod: "የክፍያ ዘዴ ይምረጡ",
+  paymentModalSubtitle: "ደንበኛው እንዴት እንደሚከፍል ይምረጡ።",
+  changePaymentMethod: "ለውጥ",
   validationEmptyCart: "ጋሪው ባዶ ነው። ከማስገባትዎ በፊት ቢያንስ አንድ ዕቃ ይጨምሩ።",
   validationInvalidQty: (names) => `ለሚከተሉት ዕቃዎች ብዛት ቢያንስ 0.01 መሆን አለበት፦ ${names}`,
   ariaQuantity: "ብዛት",
@@ -158,14 +165,12 @@ const am: Translations = {
   per: "/",
   ok: "እሺ",
   print: "ፕሪንት",
-
+  cancel: "ተወው",
   loadingItems: "እቃዎች እየተጫኑ ነው…",
   itemsLoadError: "እቃዎችን መጫን አልተሳካም። እባክዎ ያድስ።",
   noResults: "ምንም ውጤት አልተገኘም",
 };
-
 export const translations: Record<Locale, Translations> = { en, ar, am };
-
 import { createContext, useContext } from "react";
 interface LocaleContextValue {
   locale: Locale;
