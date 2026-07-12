@@ -1,6 +1,6 @@
 import "../styles/CartTable.css";
 import { useCart } from "../context/CartContext";
-import { FaTrash, FaMoneyBillWave, FaCreditCard } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import { useLocale } from "../context/LangContext";
 import { useState, useEffect } from "react";
 import SpinnerButton from "./SpinnerButton";
@@ -41,6 +41,8 @@ export default function CartTable({ title = "Order Summary" }: CartTableProps) {
     setValidationError(null);
   };
   useEffect(() => {
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRawInputs((prev) => {
       const next: Record<string, RawInputs> = {};
       for (const entry of cart) {
