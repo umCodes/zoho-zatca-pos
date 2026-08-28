@@ -1,0 +1,83 @@
+/* ── Recent Invoices tab — spec §10 ── */
+
+/* ── Summary bar: today's invoice count + total ── */
+.invoices-summary-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 0.75rem;
+  background: var(--pos-app-bg);
+  border: 1px solid var(--pos-border-hairline);
+  border-radius: 6px;
+  font-size: 0.9375rem;
+}
+
+.invoices-summary-bar__count {
+  color: var(--pos-text-secondary);
+  font-weight: 500;
+}
+
+.invoices-summary-bar__total {
+  color: var(--pos-text);
+}
+
+.invoices-summary-bar__total strong {
+  font-size: 1.0625rem;
+  color: var(--pos-accent);
+}
+
+.invoices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  font-family: var(--pos-font);
+}
+
+.invoices-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--pos-app-bg);
+  border-bottom: 2px solid var(--pos-border-heavy);
+  text-align: start;
+  font-weight: 700;
+  padding: 0.5rem 0.625rem;
+  z-index: 1;
+}
+
+.invoices-table th.col-invtotal,
+.invoices-table td.col-invtotal {
+  text-align: end;
+  font-weight: 600;
+}
+
+.invoices-table th.col-status,
+.invoices-table td.col-status {
+  text-align: center;
+}
+
+.invoices-table td.col-invnum {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.invoices-table tbody td {
+  padding: 0.5625rem 0.625rem;
+  border-bottom: 1px solid var(--pos-border-hairline);
+  color: var(--pos-text);
+}
+
+.invoices-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.invoices-table tbody tr:hover td {
+  background: var(--pos-row-hover);
+}
+
+.invoices-table .empty-state {
+  text-align: center;
+  padding: 1.125rem 0.25rem;
+  color: var(--pos-text-muted-2);
+}

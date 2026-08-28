@@ -1,4 +1,4 @@
-import { FaMoneyBillWave, FaCreditCard } from "react-icons/fa";
+import { Banknote, CreditCard } from "lucide-react";
 import { useLocale } from "../context/LangContext";
 import "../styles/Paymentmethodmodal.css";
 
@@ -36,18 +36,18 @@ export function PaymentMethodModal({ isOpen, onClose, onSelect }: PaymentMethodM
           <button
             type="button"
             onClick={() => handleSelect("Cash")}
-            className="payment-card payment-card--cash"
+            className="payment-card"
           >
-            <FaMoneyBillWave className="payment-card__icon" />
+            <Banknote className="payment-card__icon" size={22} />
             <span className="payment-card__label">{t.cash}</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSelect("Credit Card")}
-            className="payment-card payment-card--card"
+            className="payment-card"
           >
-            <FaCreditCard className="payment-card__icon" />
+            <CreditCard className="payment-card__icon" size={22} />
             <span className="payment-card__label">{t.card}</span>
           </button>
         </div>

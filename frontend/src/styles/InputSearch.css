@@ -1,209 +1,157 @@
-@import url("../index.css");
+/* ── Item search — spec §5.1 / §5.2 / §5.5 ── */
 
-/* ── Root ── */
 .input-search-root {
-  margin-inline: auto;
+  width: 100%;
 }
 
-/* ── Label tab ── */
-.dropdown-title {
-  font-family: "DM Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6b7280;
-  background: transparent;
-  width: fit-content;
-  padding: 0 0 6px 2px;
-}
-
-/* ── Wrapper ── */
-.dropdown {
+.search-field {
   position: relative;
-  display: inline-block;
-  width: 500px;
+  width: 100%;
 }
 
-/* ── Input ── */
+.search-field__icon {
+  position: absolute;
+  inset-inline-start: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pos-text-muted);
+  pointer-events: none;
+}
+
 .search-input {
   width: 100%;
-  padding: 11px 14px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  color: #111827;
-  background: #ffffff;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
+  padding-block: 0.625rem;
+  padding-inline: 2.25rem 0.75rem;
+  border: 1px solid var(--pos-border);
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  font-family: var(--pos-font);
+  color: var(--pos-text);
   box-sizing: border-box;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.search-input::placeholder {
-  color: #9ca3af;
+  background: var(--pos-surface);
 }
 
 .search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--pos-accent);
+  box-shadow: 0 0 0 2px var(--pos-surface-green);
 }
 
-/* ── Dropdown panel ── */
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 999;
-  background: #ffffff;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
-  overflow: hidden;
-}
-
-/* ── Scrollable list ── */
-.options-list {
-  max-height: 220px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #e5e7eb transparent;
-}
-
-.options-list::-webkit-scrollbar {
-  width: 4px;
-}
-.options-list::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 99px;
-}
-
-/* ── Single option row ── */
-.option {
-  padding: 12px 14px;
-  cursor: pointer;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background 0.1s ease;
-}
-
-.option:last-child {
-  border-bottom: none;
-}
-
-.option:hover {
-  background: #f9fafb;
-}
-
-.option.selected {
-  background: #f3f4f6;
-}
-
-/* ── Item data row (name+desc | price) ── */
-.dropdown .opt-item-data {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-/* ── Name ── */
-.dropdown .opt-item-data .name-description .name {
-  margin: 0 0 2px 0;
-  font-family: "DM Sans", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.3;
-}
-
-/* ── Description ── */
-.description {
-  font-family: "DM Sans", sans-serif;
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-/* ── Price ── */
-.price {
-  font-family: "DM Mono", monospace;
-  font-size: 15px;
-  font-weight: 500;
-  color: #111827;
-  white-space: nowrap;
-  padding-top: 1px;
-}
-
-/* ── Barcode line ── */
-.item-barcode {
-  margin-top: 5px;
-  font-family: "DM Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: #9ca3af;
-}
-
-/* ── Empty state ── */
-.no-results {
-  padding: 18px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 14px;
-  color: #9ca3af;
-  text-align: center;
-}
-
-
-/* ── Single option row ── */
-.option {
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #f3f4f6;
-  padding: 12px 14px;
-  cursor: pointer;
-  display: block;
-  box-sizing: border-box;
-  transition: background 0.1s ease;
-  font-family: inherit; /* prevent browser button font override */
-}
-
-.option:last-child {
-  border-bottom: none;
-}
-
-.option:hover {
-  background: #f9fafb;
-}
-
-.option.selected {
-  background: #f3f4f6;
+.search-input::placeholder {
+  color: var(--pos-text-muted);
 }
 
 .search-input:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.search-status {
-  font-size: 0.85rem;
-  padding: 6px 10px;
-  border-radius: 6px;
-  margin-top: 4px;
+/* ── Dropdown panel (§5.5) ── */
+.dropdown-menu {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  inset-inline: 0;
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 16.25rem;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.search-status.loading {
-  color: #888;
+.options-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Item result row (§5.2) ── */
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  width: 100%;
+  text-align: start;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--pos-border-hairline);
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  font-family: var(--pos-font);
+  font-size: 0.9375rem;
+  box-sizing: border-box;
+}
+
+.option:last-child {
+  border-bottom: none;
+}
+
+.option:hover {
+  background: var(--pos-row-hover);
+}
+
+.option__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.option__left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.option__description {
+  font-size: 0.8125rem;
+  color: var(--pos-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option__sku {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--pos-text-muted-2);
+  flex-shrink: 0;
+}
+
+.option__name {
+  color: var(--pos-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option__unit {
+  font-size: 0.8125rem;
+  color: var(--pos-text-muted-3);
+  flex-shrink: 0;
+}
+
+.option__price {
+  font-weight: 600;
+  color: var(--pos-text);
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-inline-start: 0.75rem;
+}
+
+/* ── Status rows (loading / error / empty) ── */
+.search-status {
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.625rem;
+  color: var(--pos-text-muted);
 }
 
 .search-status.error {
-  color: #c0392b;
-  background: #fdecea;
+  color: var(--pos-danger);
 }
 
 .search-status.no-results {
-  color: #555;
-  padding: 8px 12px;
+  color: var(--pos-text-muted-2);
 }

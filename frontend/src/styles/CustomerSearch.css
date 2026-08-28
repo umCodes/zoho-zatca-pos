@@ -1,0 +1,219 @@
+/* ── Customer search — spec §5.1 / §5.3 / §5.4 / §5.5, plus a separate
+   "Add Customer" affordance (not in the original spec's dropdown) ── */
+
+.customer-search-root {
+  width: 100%;
+  position: relative;
+}
+
+.customer-search-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.search-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-field__icon {
+  position: absolute;
+  inset-inline-start: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pos-text-muted);
+  pointer-events: none;
+}
+
+/* Customer field is visually distinguished by border color (spec §5.3) */
+.search-field--customer .search-input {
+  border-color: var(--pos-accent);
+}
+
+.search-field--customer .search-input:focus {
+  outline: none;
+}
+
+/* ── Add Customer button ── */
+.add-customer-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  padding: 0.625rem 0.875rem;
+  font-family: var(--pos-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pos-accent);
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-accent);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-customer-btn:hover {
+  background: var(--pos-surface-green);
+}
+
+/* ── Dropdown panel (§5.5) ── */
+.dropdown-menu {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  inset-inline: 0;
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 16.25rem;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Customer result row (§5.3): avatar-led, taller than item row ── */
+.customer-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  text-align: start;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--pos-border-hairline);
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  font-family: var(--pos-font);
+  box-sizing: border-box;
+}
+
+.customer-option:last-child {
+  border-bottom: none;
+}
+
+.customer-option:hover {
+  background: var(--pos-row-hover);
+}
+
+.customer-option__left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.customer-option__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.customer-option__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--pos-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-option__sub {
+  font-size: 0.8125rem;
+  color: var(--pos-text-muted-2);
+}
+
+/* ── Avatar (spec §5.3 / §5.4) ── */
+.customer-avatar {
+  flex-shrink: 0;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 50%;
+  background: var(--pos-accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--pos-font);
+  font-size: 0.71875rem;
+  font-weight: 700;
+}
+
+.customer-avatar--sm {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+/* ── Selected customer card (§5.4) ── */
+.customer-selected {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--pos-accent);
+  background: var(--pos-surface-green);
+}
+
+.customer-selected__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-selected__name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--pos-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-selected__meta {
+  font-size: 0.8125rem;
+  color: var(--pos-text-secondary);
+}
+
+.customer-change-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid var(--pos-text-muted);
+  background: var(--pos-surface);
+  color: var(--pos-text);
+  font-size: 0.84375rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--pos-font);
+}
+
+.customer-change-btn:hover {
+  background: var(--pos-row-hover);
+}
+
+/* ── Status rows ── */
+.search-status {
+  font-size: 0.875rem;
+  padding: 0.5rem 0.625rem;
+  color: var(--pos-text-muted);
+}
+
+.search-status.error {
+  color: var(--pos-danger);
+}
+
+.search-status.no-results {
+  color: var(--pos-text-muted-2);
+}

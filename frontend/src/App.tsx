@@ -1,24 +1,51 @@
 import { useEffect, useState } from 'react';
 import './App.css'
-import InputSearch from './components/InputSearch';
 import type { Item } from './types';
 import CartTable from './components/CartTable';
+import B2BCartTable from './components/B2BCartTable';
+import RecentInvoices from './components/RecentInvoices';
+import { CartProvider } from './providers/CartProvider';
 import { useLocale } from './context/LangContext';
 import OnlineOverlay from './components/OnlineOverlay';
 import PasswordPopup from './components/PasswordPopup';
 import { usePassword } from './context/PasswordContext';
 import { apiUrl } from './env';
+import { printPdf } from './utils/printPdf';
 
+type Tab = 'walk-in' | 'b2b' | 'recent';
+
+export interface NoticeState {
+  message: string;
+  invoiceId?: string;
+}
 
 function App() {
   const [items, setItems] = useState<Item[]>([])
   const [itemsLoading, setItemsLoading] = useState(true)
   const [itemsError, setItemsError] = useState(false)
-  const {locale, t, setLocale} = useLocale()
+  const {locale, t, setLocale, dir} = useLocale()
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [tab, setTab] = useState<Tab>('walk-in')
+  const [notice, setNotice] = useState<NoticeState | null>(null)
 
   const { password, isPasswordSet } = usePassword();
   const [showPasswordPopup, setShowPasswordPopup] = useState(!isPasswordSet);
+
+  // Success notice auto-dismisses after ~2.5s (spec §9)
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 2500);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  const handlePrintNotice = async () => {
+    if (!notice?.invoiceId) return;
+    try {
+      await printPdf(`${apiUrl}/invoice/${notice.invoiceId}/pdf`, { "x-password": password || "" });
+    } catch (err) {
+      console.error("Failed to print invoice:", err);
+    }
+  };
   
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -71,25 +98,91 @@ function App() {
 
   return (
     <>
-      <div>
-        <div>
-          <header>
-            <h1>
-              {t.appTitle} 
-            </h1>
-              <InputSearch options={items} loading={itemsLoading} error={itemsError} />
-            <div/>
-          </header>
-          <main>
-            <CartTable 
-              title={t.orderSummary}
-            />
-          </main>
-          <div className='langs'>
-              {locale !== "en" && <button onClick={() => setLocale("en")}>English</button>}
-              {locale !== "ar" && <button onClick={() => setLocale("ar")}>العربية</button>}
-              {locale !== "am" && <button onClick={() => setLocale("am")}>አማርኛ</button>}
+      <div className="app-outer" dir={dir}>
+        <div className="app-shell">
+          <div className="app-header-row">
+            <h2 className="app-title">{t.appTitle}</h2>
+            <div className="lang-toggle" role="radiogroup" aria-label="Language">
+              {(['en', 'ar', 'am'] as const).map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  role="radio"
+                  aria-checked={locale === code}
+                  className={`lang-toggle__btn ${locale === code ? 'lang-toggle__btn--active' : ''}`}
+                  onClick={() => setLocale(code)}
+                >
+                  {code === 'en' ? 'English' : code === 'ar' ? 'العربية' : 'አማርኛ'}
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="tab-bar" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'walk-in'}
+              className={`tab-btn ${tab === 'walk-in' ? 'tab-btn--active' : ''}`}
+              onClick={() => setTab('walk-in')}
+            >
+              {t.tabWalkIn}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'b2b'}
+              className={`tab-btn ${tab === 'b2b' ? 'tab-btn--active' : ''}`}
+              onClick={() => setTab('b2b')}
+            >
+              {t.tabB2B}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'recent'}
+              className={`tab-btn ${tab === 'recent' ? 'tab-btn--active' : ''}`}
+              onClick={() => setTab('recent')}
+            >
+              {t.tabRecentInvoices}
+            </button>
+          </div>
+
+          {notice && (
+            <div className="notice-banner" role="status">
+              <span>{notice.message}</span>
+              {notice.invoiceId && (
+                <button type="button" className="notice-banner__print" onClick={handlePrintNotice}>
+                  {t.print}
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="tab-body">
+            {tab === 'recent' ? (
+              <RecentInvoices />
+            ) : (
+              // Separate CartProvider per tab (keyed) — switching tabs never mixes carts.
+              <CartProvider key={tab}>
+                {tab === 'walk-in' ? (
+                  <CartTable
+                    items={items}
+                    itemsLoading={itemsLoading}
+                    itemsError={itemsError}
+                    onNotice={setNotice}
+                  />
+                ) : (
+                  <B2BCartTable
+                    items={items}
+                    itemsLoading={itemsLoading}
+                    itemsError={itemsError}
+                    onNotice={setNotice}
+                  />
+                )}
+              </CartProvider>
+            )}
+          </div>
         </div>
         {!isOnline && <OnlineOverlay />}
         <PasswordPopup isOpen={showPasswordPopup} onClose={() => setShowPasswordPopup(false)} />

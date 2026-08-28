@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { Barcode } from "lucide-react";
 import "../styles/InputSearch.css";
 import type { Item } from "../types";
 import { useCart } from "../context/CartContext";
 import { useLocale } from "../context/LangContext";
+
+const MAX_RESULTS = 10;
 
 function InputSearch({ options, loading, error }: { options: Item[]; loading: boolean; error: boolean }) {
   const { addToCart } = useCart();
@@ -12,11 +15,14 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
   const ref = useRef<HTMLDivElement>(null);
   const { t } = useLocale();
 
+  // Spec §5.2: focusing an empty field shows a capped result list;
+  // typing narrows the same open list in place.
   const filtered = options
     .filter((o) =>
       Object.values(o).join("").toLowerCase().includes(query.toLowerCase())
     )
-    .sort((a, b) => b.rate - a.rate);
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, MAX_RESULTS);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -50,13 +56,13 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
 
   return (
     <div className="input-search-root">
-      <div className="dropdown-title">{t.searchItem}</div>
-      <div className="dropdown" ref={ref}>
+      <div className="search-field" ref={ref}>
+        <Barcode className="search-field__icon" size={17} />
         <input
           className="search-input"
           disabled={loading || error}
           type="text"
-          placeholder="Search..."
+          placeholder={t.itemSearchPlaceholder}
           value={query}
           onChange={(e) => {
             const value = e.target.value;
@@ -69,45 +75,42 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
           }}
           onFocus={() => setOpen(true)}
         />
-          {loading && (
-            <div className="search-status loading">{t.loadingItems ?? "Loading items…"}</div>
-          )}
-          {error && (
-            <div className="search-status error">{t.itemsLoadError ?? "Failed to load items. Please refresh."}</div>
-          )}
-          {!loading && !error && open && filtered.length === 0 && query.length > 0 && (
-            <div className="search-status no-results">{t.noResults ?? "No results found"}</div>
-          )}
+        {loading && (
+          <div className="search-status loading">{t.loadingItems}</div>
+        )}
+        {error && (
+          <div className="search-status error">{t.itemsLoadError}</div>
+        )}
+        {!loading && !error && open && filtered.length === 0 && query.length > 0 && (
+          <div className="search-status no-results">{t.noResults}</div>
+        )}
         {open && filtered.length > 0 && (
           <div className="dropdown-menu">
             <div className="options-list">
-              {filtered.length === 0 ? (
-                <div className="no-results">No results found</div>
-              ) : (
-                filtered.map((item) => (
-                  <button
-                    key={item.item_id}
-                    className={`option ${selected?.item_id === item.item_id ? "selected" : ""}`}
-                    onMouseDown={() => {
-                      setSelected(item);
-                      setOpen(false);
-                      setQuery("");
-                      addToCart(item);
-                    }}
-                  >
-                    <div className="opt-item-data">
-                      <span className="name-description">
-                        <h4 className="name">{item.name}</h4>
-                        <div className="description">{item.description}</div>
-                      </span>
-                      <span className="price">SAR {item.rate}</span>
-                    </div>
-                    <div className="item-barcode">
-                      {t.barcode}: {item.sku}
-                    </div>
-                  </button>
-                ))
-              )}
+              {filtered.map((item) => (
+                <button
+                  key={item.item_id}
+                  className={`option ${selected?.item_id === item.item_id ? "selected" : ""}`}
+                  onMouseDown={() => {
+                    setSelected(item);
+                    setOpen(false);
+                    setQuery("");
+                    addToCart(item);
+                  }}
+                >
+                  <span className="option__main">
+                    <span className="option__left">
+                      <span className="option__sku">{item.sku}</span>
+                      <span className="option__name">{item.name}</span>
+                      <span className="option__unit">/ {item.unit}</span>
+                    </span>
+                    <span className="option__price">{t.currency} {item.rate.toFixed(2)}</span>
+                  </span>
+                  {item.description && (
+                    <span className="option__description">{item.description}</span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         )}

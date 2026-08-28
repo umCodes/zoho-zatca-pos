@@ -1,71 +1,172 @@
 @import url("./index.css");
 
+/* ── Root: locked to viewport, never scrolls (spec §3) ── */
+html, body, #root {
+  height: 100dvh;
+  overflow: hidden;
+  margin: 0;
+}
+
 body {
-  background-color: #f9fafb;
-  margin: 0;
+  background-color: var(--pos-app-bg);
+  font-family: var(--pos-font);
+  color: var(--pos-text);
+  font-size: 1rem;
 }
 
-/* ── Header ── */
-header {
-  display: grid;
-  grid-template-columns: 1fr 5fr 1fr;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #f9fafb;
-  border-bottom: 1.5px solid #e5e7eb;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-header h1 {
-  font-family: "DM Sans", sans-serif;
-  color: #111827;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  padding: 0;
-  margin: 0;
-  white-space: nowrap;
-}
-
-/* ── Language buttons ── */
-.langs {
+#root {
   display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-  position: fixed;
-  right: 0;
-  top: 0;
-  padding: 14px 8px ;
-  z-index: 1000;
+  flex-direction: column;
 }
 
-.langs button {
+.app-outer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
 
-  font-family: "DM Sans", sans-serif;
-  font-size: 20px;
-  font-weight: 500;
-  color: #374151;
-  background: #ffffff;
-  border: 1.5px solid #e5e7eb;
+/* Root container per spec §3 — a white panel that sits visibly on top of
+   the app's grey background, so the working area reads as a distinct layer. */
+.app-shell {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin: 0.625rem;
+  padding: 1.125rem 1.25rem;
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-border-hairline);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(18, 22, 26, 0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Header row: title + language toggle side by side ── */
+.app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.app-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--pos-text);
+}
+
+/* ── Language toggle: a single segmented control instead of three
+   free-floating buttons ── */
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--pos-border);
   border-radius: 6px;
-  padding: 5px 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.lang-toggle__btn {
+  font-family: var(--pos-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pos-text-secondary);
+  background: var(--pos-surface);
+  border: none;
+  padding: 0.4375rem 0.75rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 
-.langs button:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: #eff6ff;
+.lang-toggle__btn + .lang-toggle__btn {
+  border-inline-start: 1px solid var(--pos-border);
 }
 
-/* ── Main ── */
-main {
-  padding: 20px 16px;
+.lang-toggle__btn:hover {
+  background: var(--pos-row-hover);
+  color: var(--pos-text);
+}
+
+.lang-toggle__btn--active {
+  background: var(--pos-accent);
+  color: #ffffff;
+}
+
+.lang-toggle__btn--active:hover {
+  background: #0f3d21;
+  color: #ffffff;
+}
+
+/* ── Tab strip (§4) ── */
+.tab-bar {
+  display: flex;
+  border-bottom: 2px solid var(--pos-border-heavy);
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  font-family: var(--pos-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.625rem 1.125rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  color: var(--pos-text-secondary);
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  color: var(--pos-text);
+}
+
+.tab-btn--active {
+  color: var(--pos-accent);
+  border-bottom-color: var(--pos-accent);
+}
+
+/* ── Notice banner (§9) ── */
+.notice-banner {
+  background: var(--pos-badge-green-bg);
+  border: 1px solid var(--pos-accent);
+  color: var(--pos-accent);
+  padding: 0.5rem 0.875rem;
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.notice-banner__print {
+  background: none;
+  border: none;
+  color: var(--pos-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+/* ── Body wrapper: the only region that flexes to fill remaining height ── */
+.tab-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Offline overlay ── */

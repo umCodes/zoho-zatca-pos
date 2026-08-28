@@ -1,19 +1,41 @@
 :root {
-  --dd-bg:           #cbcbcb;
-  --dd-surface:      #ffffff;
-  --dd-border:       #414141;
-  --dd-border-focus: #9a7a3e;
-  --dd-accent:       #9a7a3e;
-  --dd-accent-dim:   rgba(154, 122, 62, 0.10);
-  --dd-text:         #1c1a16;
-  --dd-text-muted:   #9a9489;
-  --dd-selected-bg:  rgba(154, 122, 62, 0.10);
-  --dd-hover-bg:     rgba(0, 0, 0, 0.04);
-  --dd-shadow:       0 16px 48px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(0, 0, 0, 0.07);
-  --dd-radius:       10px;
-  --dd-font-ui:      'Sora', sans-serif;
-  --dd-font-mono:    'DM Mono', monospace;
-  --dd-transition:   180ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* ── POS UI palette — layered for contrast between page / panel / row ── */
+  --pos-accent:         #14532d;
+  --pos-accent-disabled:#a9c9b8;
+  --pos-danger:         #b91c1c;
+  --pos-text:           #12161a;
+  --pos-text-secondary: #4b5259;
+  --pos-text-muted:     #6b7278;
+  --pos-text-muted-2:   #7c8389;
+  --pos-text-muted-3:   #8b9197;
+  --pos-border:         #b7bcc1;
+  --pos-border-hairline:#d8dbde;
+  --pos-border-hairline-2: #e2e5e7;
+  --pos-border-heavy:   #12161a;
+  --pos-surface:        #ffffff;
+  --pos-app-bg:         #eef0f2;
+  --pos-row-hover:      #eef1f3;
+  --pos-surface-green:  #e6f2ea;
+  --pos-badge-green-bg: #dcefe2;
+  --pos-badge-blue-bg:  #e2e9f2;
+  --pos-badge-green-text: #14532d;
+  --pos-badge-blue-text:  #2c4a80;
+
+  --pos-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Scale base: every rem-sized element below grows/shrinks with viewport
+     size, and still multiplies with the browser's own zoom level, since
+     rem stays relative to this root font-size either way. Raised floor/ceiling
+     from the original 13-20px range so body text reads comfortably by default. */
+  font-size: clamp(15px, 0.85vw + 0.65vh, 22px);
+}
+
+/* Lock the app to one viewport height — no page-level scroll.
+   Only interior regions (declared per-component) scroll on their own. */
+html, body, #root {
+  height: 100dvh;
+  overflow: hidden;
+  margin: 0;
 }
 
 @keyframes spin {
