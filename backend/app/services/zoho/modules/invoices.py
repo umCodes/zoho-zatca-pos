@@ -5,7 +5,7 @@ from app.services.zoho.models.invoices_models import Invoice
 from app.services.zoho.client import zoho_client
 from app.services.openrouter_services import process_item
 from app.utils.calcs import extract_vat
-from app.utils.filters import filter_fields
+from app.utils.filters import filter_fields, filter_list_fields
 
 
 WALK_IN_CUSTOMER_ID = "46324000000060009"
@@ -64,6 +64,61 @@ async def get_invoices(params: dict = None) -> list:
         return { "ok": False, "error": data }
     return data["invoices"]
 
+
+async def get_todays_invoices() -> dict:
+    """All invoices dated today (server local date), across every page,
+    plus a count and total-amount summary — for the Recent Invoices tab."""
+    today = date.today().isoformat()
+
+    invoices = []
+    page = 1
+    while True:
+        res = await zoho_client.request(
+            path="/invoices",
+            include_org_id=True,
+            params={
+                "date_start": today,
+                "date_end": today,
+                "page": page,
+                "per_page": 200,
+                "sort_column": "created_time",
+                "sort_order": "D",
+            },
+        )
+        data = res.json()
+        if data.get("message") != "success":
+            return {"ok": False, "error": data}
+
+        batch = filter_list_fields(
+            data.get("invoices", []),
+            fields_to_keep=[
+                "invoice_id",
+                "invoice_number",
+                "date",
+                "customer_id",
+                "customer_name",
+                "total",
+                "status",
+            ],
+        )
+        for inv in batch:
+            inv["type"] = "walk-in" if inv["customer_id"] == WALK_IN_CUSTOMER_ID else "b2b"
+        invoices.extend(batch)
+
+        if not data.get("page_context", {}).get("has_more_page"):
+            break
+        page += 1
+
+    total_amount = sum(inv["total"] for inv in invoices)
+
+    return {
+        "ok": True,
+        "date": today,
+        "count": len(invoices),
+        "total_amount": total_amount,
+        "invoices": invoices,
+    }
+
 async def get_invoice(invoice_id: str) -> dict:
     res = await zoho_client.request(
         path=f"/invoices/{invoice_id}",
@@ -79,6 +134,17 @@ async def mark_invoice_as_sent(invoice_id: str) -> str:
         include_org_id=True,
     )
     return res.json()["message"]
+
+
+async def _mark_invoice_as_sent_bool(invoice_id: str) -> bool:
+    """Same call as mark_invoice_as_sent, but reports success/failure as a bool
+    instead of the raw Zoho message — for callers that just need a status flag."""
+    res = await zoho_client.request(
+        path=f"/invoices/{invoice_id}/status/sent",
+        method="POST",
+        include_org_id=True,
+    )
+    return res.status_code in (200, 201)
 
 
 async def create_walk_in_invoice(line_items, method: str = "Cash") -> dict:
@@ -112,11 +178,7 @@ async def create_walk_in_invoice(line_items, method: str = "Cash") -> dict:
     invoice_number = invoice_data["invoice_number"]
 
     # Mark as sent
-    sent_res = await zoho_client.request(
-        path=f"/invoices/{invoice_id}/status/sent",
-        include_org_id=True,
-    )
-    is_sent = sent_res.status_code in (200, 201)
+    is_sent = await _mark_invoice_as_sent_bool(invoice_id)
 
     # Record payment
     payment_payload = {
@@ -142,6 +204,45 @@ async def create_walk_in_invoice(line_items, method: str = "Cash") -> dict:
         "amount": total,
         "is_sent": is_sent,
         "is_paid": is_paid,
+    }
+
+
+async def create_b2b_invoice(customer_id: str, line_items) -> dict:
+    invoice = Invoice(
+        customer_id=customer_id,
+        line_items=line_items,
+    )
+
+    total = 0
+    for item in invoice.line_items:
+        total += float(Decimal(str(item.rate)) * Decimal(str(item.quantity)))
+        item.rate = float(Decimal(str(item.rate)) / Decimal("1.15"))
+        item.tax_percentage = 15.0
+        item.tax_id = "46324000000043661"
+        item.tax_name = "Standard Rate"
+
+    # Create invoice
+    res = await zoho_client.request(
+        path="/invoices",
+        method="POST",
+        include_org_id=True,
+        json=_format_invoice(invoice),
+    )
+    data = res.json()
+    if "invoice" not in data:
+        raise ValueError(f"Failed to create invoice: {data.get('message', 'Unknown error')}")
+
+    invoice_data = filter_fields(data["invoice"], {"invoice_id", "invoice_number"})
+    invoice_id = invoice_data["invoice_id"]
+    invoice_number = invoice_data["invoice_number"]
+
+    # Left as draft — not marked as sent here, and no payment recorded.
+    # B2B invoices are reviewed on the frontend before the cashier explicitly
+    # sends them via POST /invoices/{invoice_id}/send.
+    return {
+        "invoice_id": invoice_id,
+        "invoice_number": invoice_number,
+        "amount": total,
     }
 
 

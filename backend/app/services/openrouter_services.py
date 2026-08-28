@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 from app.core.config import OPEN_ROUTER_KEY
 
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "openai/gpt-oss-120b:free"
+# openai/gpt-oss-120b:free was retired from OpenRouter's free tier (now 404s);
+# minimax-m3:free verified working against real item/address translation prompts.
+MODEL = "minimax/minimax-m3:free"
 
 async def open_router(prompt: str, model: str = MODEL) -> str:
     headers = {
@@ -72,3 +74,40 @@ def build_prompt(item: dict) -> str:
 async def process_item(item: dict) -> dict:
     response = await open_router(build_prompt(item))
     return json.loads(response)
+
+
+def build_translate_address_field_prompt(field: str, value: str) -> str:
+    if field == "name":
+        return f"""
+    Translate the following Saudi business/customer name from Arabic to English.
+    Rules:
+    - Transliterate proper nouns and brand names (romanization), do not
+      literally translate them.
+    - Translate common business-type words normally (e.g. "مؤسسة" -> "Est.",
+      "شركة" -> "Co.", "للتجارة" -> "Trading", "المحدودة" -> "Ltd.").
+    - Format: [transliterated proper name] + [translated business-type words],
+      matching natural English business-name ordering
+      (e.g. "مؤسسة عبدالعزيز للتجارة" -> "Abdulaziz Trading Est.").
+    - Return ONLY the translated value as plain text — no quotes, no JSON, no explanation.
+    Value: {value}
+"""
+    return f"""
+    Translate the following Saudi address field from Arabic to English.
+    Field type: {field}
+    Rules:
+    - Transliterate proper nouns (street/district/city names) rather than
+      literally translating them — use the standard romanization used on
+      Saudi National Address documents (e.g. "حي العليا" -> "Olaya District",
+      "شارع الملك فهد" -> "King Fahd Street").
+    - For city/state/country, use the standard English name if one is
+      commonly used (e.g. "الرياض" -> "Riyadh", "المملكة العربية السعودية" -> "Saudi Arabia").
+    - Return ONLY the translated value as plain text — no quotes, no JSON, no explanation.
+    Value: {value}
+"""
+
+
+async def translate_address_field(field: str, value: str) -> str:
+    response = await open_router(build_translate_address_field_prompt(field, value))
+    if isinstance(response, Exception):
+        raise response
+    return response.strip().strip('"')

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import health, invoices, telegram, items, pdf, check_password, fatoora
+from app.routes import health, invoices, telegram, items, pdf, check_password, fatoora, customers
 
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
@@ -41,3 +41,4 @@ app.include_router(router=telegram.router)
 app.include_router(router=items.router)
 app.include_router(router=pdf.router)
 app.include_router(router=fatoora.router)
+app.include_router(router=customers.router)
