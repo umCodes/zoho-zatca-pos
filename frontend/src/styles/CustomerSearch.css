@@ -150,17 +150,41 @@
   height: 1.875rem;
 }
 
-/* ── Selected customer card (§5.4) ── */
+/* ── Selected customer card (§5.4) ──
+   Color reflects ZATCA completeness status: gray while the full customer
+   detail is being fetched, green once confirmed complete, red if anything
+   required is missing/invalid. */
 .customer-selected {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5625rem 0.75rem;
+  flex-direction: column;
   border-radius: 6px;
   border: 1px solid var(--pos-accent);
   background: var(--pos-surface-green);
+  overflow: hidden;
+}
+
+.customer-selected--loading {
+  border-color: var(--pos-border);
+  background: var(--pos-app-bg);
+}
+
+.customer-selected--complete {
+  border-color: var(--pos-accent);
+  background: var(--pos-surface-green);
+}
+
+.customer-selected--incomplete {
+  border-color: var(--pos-danger);
+  background: #fdecea;
+}
+
+.customer-selected__main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.75rem;
 }
 
 .customer-selected__info {
@@ -201,6 +225,95 @@
 
 .customer-change-btn:hover {
   background: var(--pos-row-hover);
+}
+
+/* ── Customer completeness status (collapsible, lives inside the selected
+   customer card — not a separate panel elsewhere on the page) ── */
+.customer-status {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.customer-status__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.4375rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--pos-font);
+  text-align: start;
+  color: inherit;
+}
+
+.customer-selected--incomplete .customer-status__header {
+  cursor: pointer;
+}
+
+.customer-selected--complete .customer-status__header,
+.customer-selected--loading .customer-status__header {
+  cursor: default;
+}
+
+.customer-status__icon {
+  flex-shrink: 0;
+  color: var(--pos-text-muted);
+}
+
+.customer-selected--complete .customer-status__icon {
+  color: var(--pos-badge-green-text);
+}
+
+.customer-selected--incomplete .customer-status__icon {
+  color: var(--pos-danger);
+}
+
+.customer-status__icon--spin {
+  animation: customer-status-spin 0.8s linear infinite;
+}
+
+@keyframes customer-status-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.customer-status__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.customer-selected--complete .customer-status__title {
+  color: var(--pos-badge-green-text);
+}
+
+.customer-selected--incomplete .customer-status__title {
+  color: var(--pos-danger);
+}
+
+.customer-status__chevron {
+  flex-shrink: 0;
+  color: var(--pos-danger);
+  transition: transform 0.15s ease;
+}
+
+.customer-status__chevron--collapsed {
+  transform: rotate(-90deg);
+}
+
+:root[dir="rtl"] .customer-status__chevron--collapsed,
+[dir="rtl"] .customer-status__chevron--collapsed {
+  transform: rotate(90deg);
+}
+
+.customer-status__list {
+  margin: 0;
+  padding-block: 0 0.5625rem;
+  padding-inline: 2.0625rem 0.75rem;
+  font-size: 0.78125rem;
+  color: var(--pos-danger);
 }
 
 /* ── Status rows ── */

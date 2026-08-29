@@ -8,7 +8,7 @@ html, body, #root {
 }
 
 body {
-  background-color: var(--pos-app-bg);
+  background-color: var(--pos-surface);
   font-family: var(--pos-font);
   color: var(--pos-text);
   font-size: 1rem;
@@ -26,19 +26,15 @@ body {
   min-height: 0;
 }
 
-/* Root container per spec §3 — a white panel that sits visibly on top of
-   the app's grey background, so the working area reads as a distinct layer. */
+/* Root container — fills the whole viewport instead of floating as a card
+   on top of a separate page background; same surface color throughout. */
 .app-shell {
   height: 100%;
   max-height: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  margin: 0.625rem;
-  padding: 1.125rem 1.25rem;
+  padding: 0.75rem 1rem;
   background: var(--pos-surface);
-  border: 1px solid var(--pos-border-hairline);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(18, 22, 26, 0.06);
   display: flex;
   flex-direction: column;
   min-height: 0;

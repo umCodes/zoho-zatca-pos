@@ -58,6 +58,47 @@
   text-align: center;
 }
 
+.invoices-table th.col-print,
+.invoices-table td.col-print {
+  width: 2.25rem;
+  text-align: center;
+}
+
+.invoice-print-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--pos-text-secondary);
+  background: none;
+  border: 1px solid var(--pos-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.invoice-print-btn:hover:not(:disabled) {
+  background: var(--pos-row-hover);
+  color: var(--pos-accent);
+  border-color: var(--pos-accent);
+}
+
+.invoice-print-btn:disabled {
+  cursor: not-allowed;
+  color: var(--pos-accent);
+  border-color: var(--pos-accent);
+}
+
+.invoice-print-btn__spinner {
+  animation: invoice-print-spin 0.8s linear infinite;
+}
+
+@keyframes invoice-print-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .invoices-table td.col-invnum {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
 }

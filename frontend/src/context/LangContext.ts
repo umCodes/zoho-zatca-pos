@@ -76,6 +76,27 @@ export interface Translations {
   invoiceStatusSent: string;
   validationNoCustomer: string;
   newInvoice: string;
+  // B2B invoice confirmation
+  confirmInvoiceBtn: string;
+  confirmAndPrintInvoiceBtn: string;
+  confirmInvoiceTitle: string;
+  confirmInvoiceWarning: string;
+  creatingConfirmedInvoice: string;
+  noticeInvoiceCreated: string;
+  // B2B customer/line-item completeness validation
+  customerInfoLoading: string;
+  customerInfoComplete: string;
+  customerInfoIncomplete: string;
+  customerIssueNotVatRegistered: string;
+  customerIssueMissingVat: string;
+  customerIssueMissingCrn: string;
+  customerIssueMissingAddress: string;
+  lineItemIssueMissingRate: string;
+  lineItemIssueMissingNameEn: string;
+  lineItemIssueMissingNameAr: string;
+  lineItemIssueMissingDescription: string;
+  validationCustomerIncomplete: string;
+  validationLineItemsIncomplete: string;
   // Recent Invoices tab
   tabRecentInvoices: string;
   invoiceNumberCol: string;
@@ -208,6 +229,25 @@ const en: Translations = {
   invoiceStatusSent: "Sent",
   validationNoCustomer: "Select a customer before creating the invoice.",
   newInvoice: "New Invoice",
+  confirmInvoiceBtn: "Confirm",
+  confirmAndPrintInvoiceBtn: "Confirm & Print",
+  confirmInvoiceTitle: "Confirm invoice — this cannot be undone",
+  confirmInvoiceWarning: "Once confirmed, this invoice will be created and sent immediately. It cannot be reverted back to a draft or edited afterward. Please make sure everything is correct before continuing.",
+  creatingConfirmedInvoice: "Creating invoice…",
+  noticeInvoiceCreated: "Invoice created and sent.",
+  customerInfoLoading: "Checking customer information…",
+  customerInfoComplete: "Customer information is complete.",
+  customerInfoIncomplete: "Customer information is incomplete:",
+  customerIssueNotVatRegistered: "Customer is not marked as VAT-registered.",
+  customerIssueMissingVat: "Missing or invalid VAT registration number.",
+  customerIssueMissingCrn: "Missing or invalid CRN (Commercial Registration Number).",
+  customerIssueMissingAddress: "Missing or incomplete national address.",
+  lineItemIssueMissingRate: "Missing price",
+  lineItemIssueMissingNameEn: "Missing English name",
+  lineItemIssueMissingNameAr: "Missing Arabic name",
+  lineItemIssueMissingDescription: "Missing description",
+  validationCustomerIncomplete: "The selected customer's information is incomplete. A B2B invoice cannot be created until it is fixed.",
+  validationLineItemsIncomplete: "One or more items are missing required information for a VAT invoice.",
   tabRecentInvoices: "Recent Invoices",
   invoiceNumberCol: "Invoice #",
   dateCol: "Date",
@@ -335,6 +375,25 @@ const ar: Translations = {
   invoiceStatusSent: "تم الإرسال",
   validationNoCustomer: "اختر عميلاً قبل إنشاء الفاتورة.",
   newInvoice: "فاتورة جديدة",
+  confirmInvoiceBtn: "تأكيد",
+  confirmAndPrintInvoiceBtn: "تأكيد وطباعة",
+  confirmInvoiceTitle: "تأكيد الفاتورة — لا يمكن التراجع عن هذا الإجراء",
+  confirmInvoiceWarning: "بمجرد التأكيد، سيتم إنشاء الفاتورة وإرسالها فوراً. لا يمكن إعادتها إلى مسودة أو تعديلها بعد ذلك. يرجى التأكد من صحة جميع البيانات قبل المتابعة.",
+  creatingConfirmedInvoice: "جارٍ إنشاء الفاتورة…",
+  noticeInvoiceCreated: "تم إنشاء الفاتورة وإرسالها.",
+  customerInfoLoading: "جارٍ التحقق من بيانات العميل…",
+  customerInfoComplete: "بيانات العميل مكتملة.",
+  customerInfoIncomplete: "بيانات العميل غير مكتملة:",
+  customerIssueNotVatRegistered: "العميل غير مسجل في ضريبة القيمة المضافة.",
+  customerIssueMissingVat: "الرقم الضريبي مفقود أو غير صحيح.",
+  customerIssueMissingCrn: "رقم السجل التجاري (CRN) مفقود أو غير صحيح.",
+  customerIssueMissingAddress: "العنوان الوطني مفقود أو غير مكتمل.",
+  lineItemIssueMissingRate: "السعر مفقود",
+  lineItemIssueMissingNameEn: "الاسم الإنجليزي مفقود",
+  lineItemIssueMissingNameAr: "الاسم العربي مفقود",
+  lineItemIssueMissingDescription: "الوصف مفقود",
+  validationCustomerIncomplete: "بيانات العميل المحدد غير مكتملة. لا يمكن إنشاء فاتورة B2B حتى يتم إصلاحها.",
+  validationLineItemsIncomplete: "صنف واحد أو أكثر يفتقر إلى معلومات مطلوبة لفاتورة ضريبية.",
   tabRecentInvoices: "الفواتير الأخيرة",
   invoiceNumberCol: "رقم الفاتورة",
   dateCol: "التاريخ",
@@ -462,6 +521,25 @@ const am: Translations = {
   invoiceStatusSent: "ተልኳል",
   validationNoCustomer: "ፋክቱራ ከመፍጠርዎ በፊት ደንበኛ ይምረጡ።",
   newInvoice: "አዲስ ፋክቱራ",
+  confirmInvoiceBtn: "አረጋግጥ",
+  confirmAndPrintInvoiceBtn: "አረጋግጥ እና አትም",
+  confirmInvoiceTitle: "ፋክቱራ አረጋግጥ — ይህ ሊቀለበስ አይችልም",
+  confirmInvoiceWarning: "ከተረጋገጠ በኋላ፣ ይህ ፋክቱራ ወዲያውኑ ይፈጠራል እና ይላካል። ወደ ደረቅ መመለስ ወይም በኋላ ማስተካከል አይቻልም። እባክዎ ከመቀጠልዎ በፊት ሁሉም ነገር ትክክል መሆኑን ያረጋግጡ።",
+  creatingConfirmedInvoice: "ፋክቱራ እየተፈጠረ ነው…",
+  noticeInvoiceCreated: "ፋክቱራ ተፈጥሮ ተልኳል።",
+  customerInfoLoading: "የደንበኛ መረጃ በመፈተሽ ላይ…",
+  customerInfoComplete: "የደንበኛ መረጃ ተሟልቷል።",
+  customerInfoIncomplete: "የደንበኛ መረጃ አልተሟላም፦",
+  customerIssueNotVatRegistered: "ደንበኛው በተ.እ.ታ ተመዝግቦ አልታየም።",
+  customerIssueMissingVat: "የግብር ምዝገባ ቁጥር ጠፍቷል ወይም ልክ ያልሆነ ነው።",
+  customerIssueMissingCrn: "CRN (የንግድ ምዝገባ ቁጥር) ጠፍቷል ወይም ልክ ያልሆነ ነው።",
+  customerIssueMissingAddress: "ብሔራዊ አድራሻ ጠፍቷል ወይም አልተሟላም።",
+  lineItemIssueMissingRate: "ዋጋ ጠፍቷል",
+  lineItemIssueMissingNameEn: "የእንግሊዝኛ ስም ጠፍቷል",
+  lineItemIssueMissingNameAr: "የዓረብኛ ስም ጠፍቷል",
+  lineItemIssueMissingDescription: "መግለጫ ጠፍቷል",
+  validationCustomerIncomplete: "የተመረጠው ደንበኛ መረጃ አልተሟላም። እስኪስተካከል ድረስ የB2B ፋክቱራ ሊፈጠር አይችልም።",
+  validationLineItemsIncomplete: "አንድ ወይም ከዚያ በላይ ዕቃዎች ለተ.እ.ታ ፋክቱራ የሚያስፈልግ መረጃ ይጎድላቸዋል።",
   tabRecentInvoices: "የቅርብ ጊዜ ፋክቱራዎች",
   invoiceNumberCol: "ፋክቱራ #",
   dateCol: "ቀን",

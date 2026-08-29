@@ -321,6 +321,13 @@
   padding-top: 0.75rem;
 }
 
+/* ── B2B line-item issue text (under a cart row) ── */
+.line-item-issues {
+  font-size: 0.71875rem;
+  color: var(--pos-danger);
+  margin-top: 0.1875rem;
+}
+
 /* ── Status badge (§10, reused here for draft/sent) ── */
 .status-badge {
   display: inline-block;

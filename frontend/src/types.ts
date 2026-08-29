@@ -3,6 +3,7 @@
 export type Item = {
     item_id: string;
     name: string;
+    name_sec_lang?: string;
     status: string;
     description: string;
     rate: number;
@@ -38,6 +39,45 @@ export type Customer = {
   contact_type: 'customer'
   tax_reg_no: string
   contact_name: string
+}
+
+// Raw Zoho billing/shipping address shape, as returned unfiltered by
+// GET /customers/{id} — native Zoho field names (street2, not street1).
+export type ZohoAddress = {
+  address_id?: string
+  address?: string
+  street2?: string
+  additional_number?: string
+  city?: string
+  district?: string
+  state?: string
+  zip?: string
+  country?: string
+  country_code?: string
+  phone?: string
+  street2_sec_lang?: string
+  city_sec_lang?: string
+  district_sec_lang?: string
+  state_sec_lang?: string
+  country_sec_lang?: string
+}
+
+// Full customer detail shape returned by GET /customers/{id} — used to
+// validate ZATCA Standard Tax Invoice (B2B) completeness once a customer
+// is selected.
+export type CustomerDetail = {
+  contact_id: string
+  contact_type: 'customer'
+  contact_name: string
+  contact_name_sec_lang?: string
+  company_name?: string
+  tax_reg_no: string
+  tax_treatment?: string
+  buyer_id_label?: string
+  buyer_id_value?: string
+  billing_address?: ZohoAddress
+  shipping_address?: ZohoAddress
+  status?: string
 }
 
 // We only ever create customers with a CRN — no user-facing ID-type choice.

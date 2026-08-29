@@ -1,16 +1,22 @@
 import { useState, useRef, useEffect } from "react";
-import { Building2, X, Plus } from "lucide-react";
+import { Building2, X, Plus, ChevronDown, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import "../styles/CustomerSearch.css";
 import type { Customer } from "../types";
 import { useLocale } from "../context/LangContext";
 import { usePassword } from "../context/PasswordContext";
 import { apiUrl } from "../env";
 import CreateCustomerModal from "./CreateCustomerModal";
+import type { CustomerIssue } from "../utils/customerValidation";
+
+export type CustomerCompletenessStatus = "loading" | "complete" | "incomplete";
 
 interface CustomerSearchProps {
   selected: Customer | null;
   onSelect: (customer: Customer) => void;
   onClear: () => void;
+  completeness?: CustomerCompletenessStatus;
+  issues?: CustomerIssue[];
+  issueLabel?: (issue: CustomerIssue) => string;
 }
 
 function initials(name: string): string {
@@ -20,7 +26,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
-function CustomerSearch({ selected, onSelect, onClear }: CustomerSearchProps) {
+function CustomerSearch({ selected, onSelect, onClear, completeness, issues, issueLabel }: CustomerSearchProps) {
   const { password } = usePassword();
   const { t } = useLocale();
 
@@ -31,6 +37,7 @@ function CustomerSearch({ selected, onSelect, onClear }: CustomerSearchProps) {
   const [error, setError] = useState(false);
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(true);
 
   const ref = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,26 +85,67 @@ function CustomerSearch({ selected, onSelect, onClear }: CustomerSearchProps) {
     onSelect(customer);
     setOpen(false);
     setQuery("");
+    setDetailsExpanded(true);
   };
+
+  const statusClass =
+    completeness === "loading" ? "customer-selected--loading" :
+    completeness === "incomplete" ? "customer-selected--incomplete" :
+    completeness === "complete" ? "customer-selected--complete" : "";
 
   return (
     <div className="customer-search-root" ref={ref}>
       <div className="customer-search-row">
         {selected ? (
-          <div className="customer-selected">
-            <span className="customer-avatar">{initials(selected.contact_name)}</span>
-            <div className="customer-selected__info">
-              <span className="customer-selected__name">{selected.contact_name}</span>
-              {selected.tax_reg_no && (
-                <span className="customer-selected__meta">
-                  {t.newCustomerTaxRegNo}: {selected.tax_reg_no}
-                </span>
-              )}
+          <div className={`customer-selected ${statusClass}`}>
+            <div className="customer-selected__main">
+              <span className="customer-avatar">{initials(selected.contact_name)}</span>
+              <div className="customer-selected__info">
+                <span className="customer-selected__name">{selected.contact_name}</span>
+                {selected.tax_reg_no && (
+                  <span className="customer-selected__meta">
+                    {t.newCustomerTaxRegNo}: {selected.tax_reg_no}
+                  </span>
+                )}
+              </div>
+              <button type="button" className="customer-change-btn" onClick={onClear}>
+                <X size={13} />
+                {t.changeCustomer}
+              </button>
             </div>
-            <button type="button" className="customer-change-btn" onClick={onClear}>
-              <X size={13} />
-              {t.changeCustomer}
-            </button>
+
+            {completeness && (
+              <div className="customer-status">
+                <button
+                  type="button"
+                  className="customer-status__header"
+                  onClick={() => setDetailsExpanded((prev) => !prev)}
+                  aria-expanded={detailsExpanded}
+                >
+                  {completeness === "loading" && <Loader2 size={14} className="customer-status__icon customer-status__icon--spin" />}
+                  {completeness === "complete" && <CheckCircle2 size={14} className="customer-status__icon" />}
+                  {completeness === "incomplete" && <AlertCircle size={14} className="customer-status__icon" />}
+                  <span className="customer-status__title">
+                    {completeness === "loading" && t.customerInfoLoading}
+                    {completeness === "complete" && t.customerInfoComplete}
+                    {completeness === "incomplete" && t.customerInfoIncomplete}
+                  </span>
+                  {completeness === "incomplete" && (
+                    <ChevronDown
+                      size={14}
+                      className={`customer-status__chevron ${detailsExpanded ? "" : "customer-status__chevron--collapsed"}`}
+                    />
+                  )}
+                </button>
+                {completeness === "incomplete" && detailsExpanded && issues && issues.length > 0 && (
+                  <ul className="customer-status__list">
+                    {issues.map((issue) => (
+                      <li key={issue}>{issueLabel ? issueLabel(issue) : issue}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="search-field search-field--customer">

@@ -10,6 +10,7 @@ import {
   type CreateCustomerForm,
   type CustomerAddressForm,
 } from "../types";
+import { CRN_PATTERN, VAT_PATTERN } from "../utils/customerValidation";
 
 interface CreateCustomerModalProps {
   isOpen: boolean;
@@ -75,14 +76,6 @@ type TranslatableFormField = "name";
 type SectionKey = "identification" | "address";
 
 const DEBOUNCE_MS = 700;
-
-// Saudi CRN: 10 digits — legacy commercial registration numbers start with
-// "1", the post-2026 unified national registration starts with "7".
-const CRN_PATTERN = /^[17]\d{9}$/;
-// Saudi VAT/TRN: 15 digits — first digit is the GCC member-state code (3 for
-// Saudi Arabia) and the number also ends in 3 (tax-type suffix), per ZATCA's
-// published format and verified against a real customer's TRN on file.
-const VAT_PATTERN = /^3\d{13}3$/;
 
 export default function CreateCustomerModal({
   isOpen,
