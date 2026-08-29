@@ -18,6 +18,42 @@
   pointer-events: none;
 }
 
+.search-field--loading .search-field__icon {
+  color: var(--pos-text-muted-2);
+}
+
+.search-field--error .search-field__icon {
+  color: var(--pos-danger);
+}
+
+.search-field__icon--spin {
+  animation: search-field-spin 0.8s linear infinite;
+}
+
+@keyframes search-field-spin {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to   { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Not-yet-usable states: input reads as unavailable, not just visually dimmed */
+.search-field--loading .search-input,
+.search-field--error .search-input {
+  background: var(--pos-app-bg);
+  color: var(--pos-text-muted);
+}
+
+.search-field--error .search-input {
+  border-color: var(--pos-danger);
+}
+
+.search-field--loading .search-input::placeholder {
+  color: var(--pos-text-muted-2);
+}
+
+.search-field--error .search-input::placeholder {
+  color: var(--pos-danger);
+}
+
 .search-input {
   width: 100%;
   padding-block: 0.625rem;

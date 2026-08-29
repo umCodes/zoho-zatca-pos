@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Barcode } from "lucide-react";
+import { Barcode, Loader2, AlertCircle } from "lucide-react";
 import "../styles/InputSearch.css";
 import type { Item } from "../types";
 import { useCart } from "../context/CartContext";
@@ -56,13 +56,19 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
 
   return (
     <div className="input-search-root">
-      <div className="search-field" ref={ref}>
-        <Barcode className="search-field__icon" size={17} />
+      <div className={`search-field ${loading ? "search-field--loading" : ""} ${error ? "search-field--error" : ""}`} ref={ref}>
+        {loading ? (
+          <Loader2 className="search-field__icon search-field__icon--spin" size={17} />
+        ) : error ? (
+          <AlertCircle className="search-field__icon" size={17} />
+        ) : (
+          <Barcode className="search-field__icon" size={17} />
+        )}
         <input
           className="search-input"
           disabled={loading || error}
           type="text"
-          placeholder={t.itemSearchPlaceholder}
+          placeholder={loading ? t.loadingItems : error ? t.itemsLoadError : t.itemSearchPlaceholder}
           value={query}
           onChange={(e) => {
             const value = e.target.value;
@@ -75,12 +81,6 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
           }}
           onFocus={() => setOpen(true)}
         />
-        {loading && (
-          <div className="search-status loading">{t.loadingItems}</div>
-        )}
-        {error && (
-          <div className="search-status error">{t.itemsLoadError}</div>
-        )}
         {!loading && !error && open && filtered.length === 0 && query.length > 0 && (
           <div className="search-status no-results">{t.noResults}</div>
         )}
