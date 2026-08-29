@@ -102,9 +102,11 @@ function InputSearch({ options, loading, error }: { options: Item[]; loading: bo
                     <span className="option__left">
                       <span className="option__sku">{item.sku}</span>
                       <span className="option__name">{item.name}</span>
-                      <span className="option__unit">/ {item.unit}</span>
                     </span>
-                    <span className="option__price">{t.currency} {item.rate.toFixed(2)}</span>
+                    <span className="option__price">
+                        {t.currency} {item.rate.toFixed(2)} 
+                        <span className="option__unit">/ {item.unit}</span>
+                    </span>
                   </span>
                   {item.description && (
                     <span className="option__description">{item.description}</span>

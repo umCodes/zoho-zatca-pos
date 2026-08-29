@@ -70,7 +70,6 @@
 .option {
   display: flex;
   flex-direction: column;
-  gap: 0.1875rem;
   width: 100%;
   text-align: start;
   background: none;
