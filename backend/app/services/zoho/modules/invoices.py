@@ -207,7 +207,10 @@ async def create_walk_in_invoice(line_items, method: str = "Cash") -> dict:
     }
 
 
-async def create_b2b_invoice(customer_id: str, line_items) -> dict:
+async def _create_b2b_invoice_draft(customer_id: str, line_items) -> tuple[str, str, float]:
+    """Shared Zoho invoice-create call for B2B invoices. Returns
+    (invoice_id, invoice_number, vat-inclusive total). The invoice is left
+    as a Zoho draft — callers decide whether/how to advance it further."""
     invoice = Invoice(
         customer_id=customer_id,
         line_items=line_items,
@@ -221,7 +224,6 @@ async def create_b2b_invoice(customer_id: str, line_items) -> dict:
         item.tax_id = "46324000000043661"
         item.tax_name = "Standard Rate"
 
-    # Create invoice
     res = await zoho_client.request(
         path="/invoices",
         method="POST",
@@ -233,16 +235,45 @@ async def create_b2b_invoice(customer_id: str, line_items) -> dict:
         raise ValueError(f"Failed to create invoice: {data.get('message', 'Unknown error')}")
 
     invoice_data = filter_fields(data["invoice"], {"invoice_id", "invoice_number"})
-    invoice_id = invoice_data["invoice_id"]
-    invoice_number = invoice_data["invoice_number"]
+    return invoice_data["invoice_id"], invoice_data["invoice_number"], total
 
+
+async def create_b2b_invoice(customer_id: str, line_items) -> dict:
     # Left as draft — not marked as sent here, and no payment recorded.
     # B2B invoices are reviewed on the frontend before the cashier explicitly
     # sends them via POST /invoices/{invoice_id}/send.
+    invoice_id, invoice_number, total = await _create_b2b_invoice_draft(customer_id, line_items)
     return {
         "invoice_id": invoice_id,
         "invoice_number": invoice_number,
         "amount": total,
+    }
+
+
+async def create_b2b_invoice_confirmed(customer_id: str, line_items) -> dict:
+    """Creates the B2B invoice, pushes it to ZATCA/Fatoora, and marks it
+    sent — all in one atomic, user-confirmed action. Used by the invoice
+    confirmation flow, which is an explicit, irreversible commit (no more
+    draft/send review step). A Fatoora push failure does not block the
+    invoice from being created and sent — the existing /push-invoices cron
+    remains a safety net for anything that fails to push here."""
+    invoice_id, invoice_number, total = await _create_b2b_invoice_draft(customer_id, line_items)
+
+    einvoice_pushed = False
+    try:
+        invoice = await get_invoice(invoice_id)
+        einvoice_pushed = await push_to_fatoora(invoice)
+    except Exception as error:
+        print(f"Fatoora push failed for invoice {invoice_id}: {error}")
+
+    is_sent = await _mark_invoice_as_sent_bool(invoice_id)
+
+    return {
+        "invoice_id": invoice_id,
+        "invoice_number": invoice_number,
+        "amount": total,
+        "is_sent": is_sent,
+        "einvoice_pushed": einvoice_pushed,
     }
 
 
