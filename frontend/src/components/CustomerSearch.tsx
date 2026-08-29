@@ -7,8 +7,15 @@ import { usePassword } from "../context/PasswordContext";
 import { apiUrl } from "../env";
 import CreateCustomerModal from "./CreateCustomerModal";
 import type { CustomerIssue } from "../utils/customerValidation";
+import { getCached, setCached, invalidateCache } from "../utils/apiCache";
 
 export type CustomerCompletenessStatus = "loading" | "complete" | "incomplete";
+
+// Mirrors the backend's own customer-list cache TTL (contacts.py,
+// CUSTOMERS_CACHE_TTL) — no point caching client-side longer than the
+// server itself does, since a stale server-side hit would mask it anyway.
+const CUSTOMERS_CACHE_TTL_MS = 60 * 1000;
+const CUSTOMERS_CACHE_PREFIX = "customers:";
 
 interface CustomerSearchProps {
   selected: Customer | null;
@@ -56,6 +63,14 @@ function CustomerSearch({ selected, onSelect, onClear, completeness, issues, iss
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
+    const cacheKey = `${CUSTOMERS_CACHE_PREFIX}${query.toLowerCase()}`;
+    const cached = getCached<Customer[]>(cacheKey);
+    if (cached) {
+      setResults(cached);
+      setError(false);
+      return;
+    }
+
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       setError(false);
@@ -66,7 +81,9 @@ function CustomerSearch({ selected, onSelect, onClear, completeness, issues, iss
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setResults(data.ok ? data.customers : []);
+        const customers = data.ok ? data.customers : [];
+        setCached(cacheKey, customers, CUSTOMERS_CACHE_TTL_MS);
+        setResults(customers);
       } catch {
         setError(true);
         setResults([]);
@@ -213,6 +230,8 @@ function CustomerSearch({ selected, onSelect, onClear, completeness, issues, iss
         onClose={() => setCreateModalOpen(false)}
         onCreated={(customer) => {
           setCreateModalOpen(false);
+          invalidateCache(CUSTOMERS_CACHE_PREFIX);
+          invalidateCache("customer-detail:");
           handlePick(customer);
         }}
       />

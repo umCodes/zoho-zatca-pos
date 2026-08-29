@@ -57,6 +57,37 @@ body {
   color: var(--pos-text);
 }
 
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ── Manual full-page refresh — needed once installed as a PWA, where
+   there's no browser chrome reload button; also clears the in-memory
+   TTL cache (utils/apiCache.ts) and refetches everything fresh. ── */
+.refresh-page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--pos-text-secondary);
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-border);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.refresh-page-btn:hover {
+  background: var(--pos-row-hover);
+  color: var(--pos-accent);
+  border-color: var(--pos-accent);
+}
+
 /* ── Language toggle: a single segmented control instead of three
    free-floating buttons ── */
 .lang-toggle {

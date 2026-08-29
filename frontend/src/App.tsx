@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import './App.css'
 import type { Item } from './types';
 import CartTable from './components/CartTable';
@@ -11,6 +12,10 @@ import PasswordPopup from './components/PasswordPopup';
 import { usePassword } from './context/PasswordContext';
 import { apiUrl } from './env';
 import { printPdf } from './utils/printPdf';
+import { getCached, setCached } from './utils/apiCache';
+
+const ITEMS_CACHE_KEY = 'items';
+const ITEMS_CACHE_TTL_MS = 5 * 60 * 1000; // item catalog changes rarely
 
 type Tab = 'walk-in' | 'b2b' | 'recent';
 
@@ -79,14 +84,23 @@ function App() {
 
   useEffect(() => {
   if (!isPasswordSet) return;
-  
+
+  const cached = getCached<Item[]>(ITEMS_CACHE_KEY);
+  if (cached) {
+    setItems(cached);
+    setItemsLoading(false);
+    return;
+  }
+
   fetch(`${apiUrl}/items`, { headers: { "x-password": password || "" } })
     .then(res => {
       if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
     })
     .then(data => {
-      setItems(data.sort((a: Item, b: Item) => parseInt(a.sku) - parseInt(b.sku)))
+      const sorted = data.sort((a: Item, b: Item) => parseInt(a.sku) - parseInt(b.sku));
+      setCached(ITEMS_CACHE_KEY, sorted, ITEMS_CACHE_TTL_MS);
+      setItems(sorted)
       setItemsLoading(false)
     })
     .catch(() => {
@@ -102,19 +116,30 @@ function App() {
         <div className="app-shell">
           <div className="app-header-row">
             <h2 className="app-title">{t.appTitle}</h2>
-            <div className="lang-toggle" role="radiogroup" aria-label="Language">
-              {(['en', 'ar', 'am'] as const).map((code) => (
-                <button
-                  key={code}
-                  type="button"
-                  role="radio"
-                  aria-checked={locale === code}
-                  className={`lang-toggle__btn ${locale === code ? 'lang-toggle__btn--active' : ''}`}
-                  onClick={() => setLocale(code)}
-                >
-                  {code === 'en' ? 'English' : code === 'ar' ? 'العربية' : 'አማርኛ'}
-                </button>
-              ))}
+            <div className="app-header-actions">
+              <div className="lang-toggle" role="radiogroup" aria-label="Language">
+                {(['en', 'ar', 'am'] as const).map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    role="radio"
+                    aria-checked={locale === code}
+                    className={`lang-toggle__btn ${locale === code ? 'lang-toggle__btn--active' : ''}`}
+                    onClick={() => setLocale(code)}
+                  >
+                    {code === 'en' ? 'English' : code === 'ar' ? 'العربية' : 'አማርኛ'}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="refresh-page-btn"
+                onClick={() => window.location.reload()}
+                aria-label={t.refreshPage}
+                title={t.refreshPage}
+              >
+                <RefreshCw size={16} />
+              </button>
             </div>
           </div>
 

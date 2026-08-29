@@ -13,6 +13,13 @@ import type { NoticeState } from "../App";
 import { validateCustomerForB2B, type CustomerIssue } from "../utils/customerValidation";
 import { validateLineItem, type LineItemIssue } from "../utils/lineItemValidation";
 import { printPdf } from "../utils/printPdf";
+import { getCached, setCached } from "../utils/apiCache";
+
+// Mirrors the backend's own customer cache TTL (contacts.py) — matches
+// CustomerSearch's search-result cache for the same reason.
+const CUSTOMER_DETAIL_CACHE_TTL_MS = 60 * 1000;
+// Item catalog/detail changes rarely — same TTL as the item list cache in App.tsx.
+const ITEM_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 interface RawInputs {
   qty: string;
@@ -71,6 +78,13 @@ export default function B2BCartTable({ items, itemsLoading, itemsError, onNotice
       setCustomerIssues([]);
       return;
     }
+    const cacheKey = `customer-detail:${customer.contact_id}`;
+    const cached = getCached<CustomerDetail>(cacheKey);
+    if (cached) {
+      setCustomerIssues(validateCustomerForB2B(cached));
+      return;
+    }
+
     let cancelled = false;
     setCustomerDetailLoading(true);
     (async () => {
@@ -82,6 +96,7 @@ export default function B2BCartTable({ items, itemsLoading, itemsError, onNotice
         const data = await res.json();
         if (cancelled) return;
         if (data.ok && data.customer) {
+          setCached(cacheKey, data.customer as CustomerDetail, CUSTOMER_DETAIL_CACHE_TTL_MS);
           setCustomerIssues(validateCustomerForB2B(data.customer as CustomerDetail));
         } else {
           setCustomerIssues(["missingAddress", "missingVat", "missingCrn"]);
@@ -109,6 +124,12 @@ export default function B2BCartTable({ items, itemsLoading, itemsError, onNotice
     let cancelled = false;
     (async () => {
       for (const itemId of missing) {
+        const cacheKey = `item-detail:${itemId}`;
+        const cached = getCached<{ name_sec_lang: string }>(cacheKey);
+        if (cached) {
+          setItemDetails((prev) => ({ ...prev, [itemId]: cached }));
+          continue;
+        }
         try {
           const res = await fetch(`${apiUrl}/items/${encodeURIComponent(itemId)}`, {
             headers: { "x-password": password || "" },
@@ -116,7 +137,9 @@ export default function B2BCartTable({ items, itemsLoading, itemsError, onNotice
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
           if (cancelled) return;
-          setItemDetails((prev) => ({ ...prev, [itemId]: { name_sec_lang: data.name_sec_lang || "" } }));
+          const detail = { name_sec_lang: data.name_sec_lang || "" };
+          setCached(cacheKey, detail, ITEM_DETAIL_CACHE_TTL_MS);
+          setItemDetails((prev) => ({ ...prev, [itemId]: detail }));
         } catch (err) {
           console.error(`Error fetching item detail for ${itemId}:`, err);
           if (!cancelled) setItemDetails((prev) => ({ ...prev, [itemId]: { name_sec_lang: "" } }));
