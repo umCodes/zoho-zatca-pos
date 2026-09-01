@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, Literal
+from datetime import date as date_type
 
 
 # Validation Schema
@@ -37,6 +38,7 @@ class ExpenseCreate(ExpenseBase):
 
 class ExpenseResponse(ExpenseBase):
     id: int
+    date: date_type  # Expense.date is a SQL Date column, not a string
     vendor: Optional[ContactResponse] = None  # nested contact object
 
     class Config:

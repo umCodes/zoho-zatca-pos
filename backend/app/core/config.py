@@ -19,6 +19,7 @@ PASSWORD = os.getenv("PASSWORD")
 ENV = os.getenv("ENV", "dev")
 
 FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
+ADMIN_DOMAIN = os.getenv("ADMIN_DOMAIN")
 SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:8080")
 
 DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")

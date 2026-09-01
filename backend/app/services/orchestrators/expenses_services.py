@@ -1,11 +1,11 @@
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 
 from app.database.schemas import ExpenseCreate
-from app.database.services import create_expense_db
+from app.database.services import create_expense_db, delete_expense_db, get_expense_db
 
 from app.database.setup import get_db
 from app.services.orchestrators.contact_services import resolve_vendor
-from app.services.zoho.modules.expenses import create_expense_in_zoho
+from app.services.zoho.modules.expenses import create_expense_in_zoho, delete_expense_in_zoho
 from app.database.models import Expense
 
 import json
@@ -51,3 +51,22 @@ async def create_expense(expense: CreateExpenseZoho):
         "ok": True,
         "expense": zoho_expense["expense"]
     }
+
+
+async def delete_expense(expense_id: str):
+    print("- Deleting Expense...")
+    db = next(get_db())
+
+    existing = get_expense_db(db=db, expense_id=expense_id)
+    if not existing:
+        return {"ok": False, "error": "Expense not found"}
+
+    # Delete from Zoho first — if it fails, the DB record is left untouched
+    zoho_result = await delete_expense_in_zoho(expense_id)
+    if not zoho_result["ok"]:
+        return zoho_result
+
+    delete_expense_db(db=db, expense_id=expense_id)
+
+    print("Returning Successfully Deleted Expense...")
+    return {"ok": True}

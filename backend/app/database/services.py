@@ -1,5 +1,5 @@
 from app.database.models import Contact, Expense
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database.schemas import ContactCreate, ExpenseCreate
 from app.services.zoho.modules.contacts import get_contacts, get_contact
 
@@ -70,6 +70,16 @@ def create_expense_db(db: Session, expense: ExpenseCreate):
 
 def get_expenses_db(db: Session):
     return db.query(Expense)
+
+def list_expenses_db(db: Session):
+    """Fetches all expenses with their vendor pre-loaded in a single JOIN
+    query (no N+1 vendor lookups), newest-first — meant for a list view."""
+    return (
+        db.query(Expense)
+        .options(joinedload(Expense.vendor))
+        .order_by(Expense.date.desc(), Expense.id.desc())
+        .all()
+    )
 
 def get_expense_db(db: Session, expense_id: str):
     return db.query(Expense).filter(Expense.expense_id == expense_id).first()

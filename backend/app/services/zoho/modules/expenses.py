@@ -15,7 +15,7 @@ async def get_expenses():
         return {
             "ok": True,
             "expenses": filter_list_fields(
-                data=data["expenses"], 
+                data=data["expenses"],
                 fields_to_keep=[
                     "expense_id",
                     "tax_reg_no",
@@ -170,4 +170,27 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
     )
 
     return {"ok": True, "expense": filtered}
+
+
+async def delete_expense_in_zoho(expense_id: str):
+    print("- Deleting Expense in Zoho...")
+    try:
+        response = await zoho_client.request(
+            method="DELETE",
+            path=f"/expenses/{expense_id}",
+            include_org_id=True,
+        )
+        data = response.json()
+
+        if data.get("code") != 0:
+            print("- Failed to delete expense in Zoho.")
+            return {"ok": False, "error": data}
+
+        return {"ok": True}
+    except HTTPStatusError as e:
+        print(e)
+        return {
+            "ok": False,
+            "error": e
+        }
 

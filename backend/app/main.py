@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import health, invoices, telegram, items, pdf, check_password, fatoora, customers
+from app.routes import health, invoices, telegram, items, pdf, check_password, fatoora, customers, expenses
 
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
 
-from app.core.config import ENV, FRONTEND_DOMAIN
+from app.core.config import ENV, FRONTEND_DOMAIN, ADMIN_DOMAIN
 from app.routes import fatoora
 
 
@@ -14,7 +14,7 @@ app = FastAPI()
 
 
 if ENV == "prod":
-    origins = [FRONTEND_DOMAIN]
+    origins = [origin for origin in [FRONTEND_DOMAIN, ADMIN_DOMAIN] if origin]
 else:
     origins = [
         "http://localhost:3000",
@@ -25,6 +25,7 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.ngrok-free\.app" if ENV != "prod" else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,3 +43,4 @@ app.include_router(router=items.router)
 app.include_router(router=pdf.router)
 app.include_router(router=fatoora.router)
 app.include_router(router=customers.router)
+app.include_router(router=expenses.router)
