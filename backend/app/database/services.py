@@ -96,3 +96,8 @@ def delete_expense_db(db: Session, expense_id: str):
         db.delete(db_expense)
         db.commit()
     return db_expense
+
+def delete_expenses_db(db: Session, expense_ids: list[str]):
+    """Deletes several expenses in one DELETE statement instead of one query per row."""
+    db.query(Expense).filter(Expense.expense_id.in_(expense_ids)).delete(synchronize_session=False)
+    db.commit()

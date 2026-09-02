@@ -1,13 +1,14 @@
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 
 from app.database.schemas import ExpenseCreate
-from app.database.services import create_expense_db, delete_expense_db, get_expense_db
+from app.database.services import create_expense_db, delete_expense_db, delete_expenses_db, get_expense_db
 
 from app.database.setup import get_db
 from app.services.orchestrators.contact_services import resolve_vendor
 from app.services.zoho.modules.expenses import create_expense_in_zoho, delete_expense_in_zoho
 from app.database.models import Expense
 
+import asyncio
 import json
 # Saves Expense to Database
 def save_expense_to_db(db, expense: dict):
@@ -70,3 +71,41 @@ async def delete_expense(expense_id: str):
 
     print("Returning Successfully Deleted Expense...")
     return {"ok": True}
+
+
+async def delete_expenses(expense_ids: list[str]):
+    """Deletes several expenses at once — the Zoho side is fanned out
+    concurrently (Zoho Books has no native bulk-delete for expenses), and
+    only IDs that succeeded in Zoho are removed from Postgres, in one
+    statement rather than one query per row."""
+    print(f"- Deleting {len(expense_ids)} Expenses...")
+    db = next(get_db())
+
+    existing_ids = [
+        expense_id for expense_id in expense_ids
+        if get_expense_db(db=db, expense_id=expense_id)
+    ]
+    missing_ids = [expense_id for expense_id in expense_ids if expense_id not in existing_ids]
+
+    zoho_results = await asyncio.gather(
+        *(delete_expense_in_zoho(expense_id) for expense_id in existing_ids)
+    )
+
+    deleted_ids = []
+    failed = []
+    for expense_id, result in zip(existing_ids, zoho_results):
+        if result["ok"]:
+            deleted_ids.append(expense_id)
+        else:
+            failed.append({"expense_id": expense_id, "error": result.get("error")})
+
+    if deleted_ids:
+        delete_expenses_db(db=db, expense_ids=deleted_ids)
+
+    print(f"Deleted {len(deleted_ids)}, failed {len(failed)}, not found {len(missing_ids)}")
+    return {
+        "ok": len(failed) == 0 and len(missing_ids) == 0,
+        "deleted": deleted_ids,
+        "failed": failed,
+        "not_found": missing_ids,
+    }

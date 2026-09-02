@@ -1,16 +1,21 @@
 import base64
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database.schemas import ExpenseResponse
 from app.database.services import list_expenses_db
 from app.database.setup import get_db
 from app.services.gemini_services import process_img
-from app.services.orchestrators.expenses_services import create_expense, delete_expense
+from app.services.orchestrators.expenses_services import create_expense, delete_expense, delete_expenses
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.utils.qr_decoder import decode_qr_code
 
 router = APIRouter()
+
+
+class DeleteExpensesRequest(BaseModel):
+    expense_ids: list[str]
 
 
 @router.get("/expenses", response_model=list[ExpenseResponse])
@@ -65,4 +70,17 @@ async def remove_expense(expense_id: str):
     if not result.get("ok"):
         status_code = 404 if result.get("error") == "Expense not found" else 409
         raise HTTPException(status_code=status_code, detail=result)
+    return result
+
+
+@router.delete("/expenses")
+async def remove_expenses(body: DeleteExpensesRequest):
+    """Deletes several purchase invoices at once — the Zoho-side deletes run
+    concurrently, and only the ones that succeeded there are removed from
+    Postgres, in a single statement. Used for multi-select delete in the UI."""
+    if not body.expense_ids:
+        raise HTTPException(status_code=422, detail="expense_ids must not be empty")
+    result = await delete_expenses(expense_ids=body.expense_ids)
+    if not result.get("ok"):
+        raise HTTPException(status_code=409, detail=result)
     return result

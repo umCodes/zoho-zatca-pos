@@ -10,12 +10,13 @@ async def validate_password(request: Request, call_next):
     
     print(f"Validating password for path: {request.url.path}")
 
-    # Listing invoices exposes real financial records, so it stays gated
-    # even though POST /expenses (submit) and /upload (scan) are exempt below.
+    # Listing and bulk-deleting invoices touch real financial records, so
+    # they stay gated even though POST /expenses (submit) and /upload
+    # (scan) are exempt below.
     is_exempt_path = request.url.path in ["/push-invoices", "/docs", "/openapi.json", "/redoc", "/check_password", "/health", "/upload", "/read_qr", "/expenses", "/vendors", "/webhook/telegram"] or re.match(r"^/invoice/.*/pdf$", request.url.path)
-    is_expenses_list = request.url.path == "/expenses" and request.method == "GET"
+    is_gated_expenses_method = request.url.path == "/expenses" and request.method in ("GET", "DELETE")
 
-    if is_exempt_path and not is_expenses_list:
+    if is_exempt_path and not is_gated_expenses_method:
         return await call_next(request)
 
     if request.headers.get("x-password") != PASSWORD:
