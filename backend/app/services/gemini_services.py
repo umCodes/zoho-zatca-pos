@@ -6,6 +6,16 @@ from app.core.config import GEMINI_API_KEY, GEMINI_API_KEY_2
 MODEL = "gemini-2.5-flash"
 URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 
+REQUEST_TIMEOUT = httpx.Timeout(60.0, connect=10.0)
+
+
+class ScanOverloadedError(Exception):
+    """Gemini is rate-limiting or out of quota on every configured key."""
+
+
+class ScanTimeoutError(Exception):
+    """Gemini did not respond within REQUEST_TIMEOUT."""
+
 PROMPT = """
     Extract invoice data. Return valid JSON only — no explanations.
     Rules:
@@ -31,6 +41,8 @@ QUOTA_ERROR_CODES = {429, 403}
 
 async def process_img(img: str):
     res = await Gemini_with_fallback(PROMPT, img)
+    if isinstance(res, Exception):
+        raise res
     return parse_json_response(res)
 
 
@@ -99,6 +111,7 @@ async def Gemini_with_fallback(prompt: str, img: str = None, mime_type: str = "i
     api_keys = [key for key in [GEMINI_API_KEY, GEMINI_API_KEY_2] if key]
 
     last_error = None
+    all_quota_errors = True
     for i, key in enumerate(api_keys):
         try:
             result = await Gemini(prompt, img, api_key=key, mime_type=mime_type)
@@ -107,12 +120,20 @@ async def Gemini_with_fallback(prompt: str, img: str = None, mime_type: str = "i
             return result
         except Exception as e:
             last_error = e
+            if not isinstance(e, httpx.HTTPStatusError) or e.response.status_code not in QUOTA_ERROR_CODES:
+                all_quota_errors = False
             is_last = i == len(api_keys) - 1
             if not is_last:
                 print(f"Key {i + 1} failed ({e}), trying next key...")
             else:
                 print(f"All API keys exhausted. Last error: {e}")
 
+    if last_error is None:
+        return None
+    if isinstance(last_error, (httpx.TimeoutException, ScanTimeoutError)):
+        return ScanTimeoutError("Invoice scan timed out")
+    if all_quota_errors:
+        return ScanOverloadedError("Invoice scan service is out of capacity")
     return last_error
 
 
@@ -135,7 +156,7 @@ async def Gemini(prompt: str, img: str = None, api_key: str = None, mime_type: s
     body = {"contents": [{"parts": parts}]}
 
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             res = await client.post(URL, headers=headers, json=body)
 
             # Raise immediately on quota/auth errors so fallback can catch them
@@ -150,6 +171,9 @@ async def Gemini(prompt: str, img: str = None, api_key: str = None, mime_type: s
 
             return data["candidates"][0]["content"]["parts"][0]["text"]
 
+    except httpx.TimeoutException as e:
+        print(f"Timeout calling Gemini API: {e}")
+        raise ScanTimeoutError("Invoice scan timed out") from e
     except httpx.HTTPStatusError as e:
         print(f"HTTP error from Gemini API: {e.response.status_code} - {e.response.text}")
         raise  # Re-raise so fallback wrapper catches it

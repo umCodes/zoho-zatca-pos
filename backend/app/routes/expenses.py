@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database.schemas import ExpenseResponse
 from app.database.services import list_expenses_db
 from app.database.setup import get_db
-from app.services.gemini_services import process_img
+from app.services.gemini_services import ScanOverloadedError, ScanTimeoutError, process_img
 from app.services.orchestrators.expenses_services import create_expense, delete_expense, delete_expenses
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.utils.qr_decoder import decode_qr_code
@@ -42,11 +42,27 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
     b64_data = base64.b64encode(contents).decode("utf-8")
     try:
         data = await process_img(b64_data)
+    except ScanOverloadedError as e:
+        raise HTTPException(
+            status_code=503,
+            detail={"ok": False, "error": {"code": "overloaded", "message": str(e)}},
+        )
+    except ScanTimeoutError as e:
+        raise HTTPException(
+            status_code=504,
+            detail={"ok": False, "error": {"code": "timeout", "message": str(e)}},
+        )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Invoice scan failed: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail={"ok": False, "error": {"code": "generic", "message": f"Invoice scan failed: {e}"}},
+        )
 
     if "contact_name" not in data:
-        raise HTTPException(status_code=422, detail="Could not extract invoice data from image")
+        raise HTTPException(
+            status_code=422,
+            detail={"ok": False, "error": {"code": "no_data", "message": "Could not extract invoice data from image"}},
+        )
 
     return {"ok": True, "source": "ai", "data": data}
 
