@@ -158,11 +158,6 @@ export default function B2BCartTable({ items, itemsLoading, itemsError, onNotice
     }));
     const n = parseFloat(raw);
     if (!isNaN(n)) {
-      // Spec §6: setting quantity to 0 removes the line automatically.
-      if (field === "qty" && n === 0) {
-        removeFromCart(id);
-        return;
-      }
       setCart((prev) =>
         prev.map((entry) => (entry.line_id === id ? { ...entry, [field]: n } : entry))
       );
