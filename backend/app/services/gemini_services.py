@@ -158,13 +158,13 @@ async def Gemini(prompt: str, img: str = None, api_key: str = None, mime_type: s
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             res = await client.post(URL, headers=headers, json=body)
+            print(f"Gemini API response [{res.status_code}]: {res.text}")
 
             # Raise immediately on quota/auth errors so fallback can catch them
             if res.status_code in QUOTA_ERROR_CODES:
                 res.raise_for_status()
 
             data = res.json()
-            print(data)
 
             if "candidates" not in data:
                 raise ValueError(f"Gemini API error: no candidates in response")
