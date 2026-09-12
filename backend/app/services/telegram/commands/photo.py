@@ -2,7 +2,7 @@ from app.services.telegram.setup import telegram
 from app.utils.qr_decoder import decode_qr_code 
 from app.services.telegram.utils.check_lang import check_language 
 
-from app.services.gemini_services import process_img
+from app.services.mistral_services import process_img
 import json
 import base64
 

@@ -27,6 +27,8 @@ TELEGRAM_BOT_TOKEN= os.getenv("TELEGRAM_BOT_TOKEN")
 
 OPEN_ROUTER_KEY = os.getenv("OPEN_ROUTER_KEY")
 
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
 
 def get_settings():
     return {

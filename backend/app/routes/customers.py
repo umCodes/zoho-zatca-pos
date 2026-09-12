@@ -3,7 +3,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel
 from app.services.zoho.models.contacts_models import CreateCustomerDetailedZoho
 from app.services.zoho.modules.contacts import get_customers, get_customer, create_customer_detailed_in_zoho
-from app.services.gemini_services import process_customer_document
+from app.services.mistral_services import process_customer_document
 from app.services.openrouter_services import translate_address_field
 
 router = APIRouter()

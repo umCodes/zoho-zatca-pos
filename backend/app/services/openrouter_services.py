@@ -5,11 +5,34 @@ from dotenv import load_dotenv
 from app.core.config import OPEN_ROUTER_KEY
 
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-# openai/gpt-oss-120b:free was retired from OpenRouter's free tier (now 404s);
-# minimax-m3:free verified working against real item/address translation prompts.
-MODEL = "minimax/minimax-m3:free"
+# openai/gpt-oss-120b:free and minimax/minimax-m3:free were both retired from
+# OpenRouter's free tier. These, in order, verified stable and accurate on
+# bilingual (ar/en) structured-JSON extraction prompts — free-tier models sit
+# behind shared upstream pools that rate-limit independently of each other,
+# so falling through the list is normal, not a sign anything is broken.
+MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+FALLBACK_MODELS = [
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "dots-studio/dots-3-note-preview:free",
+]
+
 
 async def open_router(prompt: str, model: str = MODEL) -> str:
+    models = [model] + [m for m in FALLBACK_MODELS if m != model]
+
+    last_error = None
+    for i, m in enumerate(models):
+        result = await _call_model(prompt, m)
+        if not isinstance(result, Exception):
+            return result
+        last_error = result
+        is_last = i == len(models) - 1
+        if not is_last:
+            print(f"Model {m} failed ({result}), trying next model...")
+    return last_error
+
+
+async def _call_model(prompt: str, model: str):
     headers = {
         "Authorization": f"Bearer {OPEN_ROUTER_KEY}",
         "Content-Type": "application/json",

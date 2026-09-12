@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database.schemas import ExpenseResponse
 from app.database.services import list_expenses_db
 from app.database.setup import get_db
-from app.services.gemini_services import ScanOverloadedError, ScanTimeoutError, process_img
+from app.services.mistral_services import ScanOverloadedError, ScanTimeoutError, process_img
 from app.services.orchestrators.expenses_services import create_expense, delete_expense, delete_expenses
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.utils.qr_decoder import decode_qr_code
