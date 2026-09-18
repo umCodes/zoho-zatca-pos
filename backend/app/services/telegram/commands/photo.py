@@ -68,7 +68,7 @@ async def full_ai_scan(update, user):
             ))
             return
         
-        if len(data["tax_reg_no"]) != 15:
+        if data["tax_reg_no"] and len(data["tax_reg_no"]) != 15:
             await telegram.send_message(chat_id=chat_id, text=(
                 "ፎቶው ግልጽ አደለም። ❌" if user.get("language") == "am"
                 else "\u200F" + "الصورة غير واضحة. ❌"
@@ -107,6 +107,7 @@ async def full_ai_scan(update, user):
             )
         )
         user["last_data"] = data
+        user["last_image"] = {"bytes": file, "filename": "receipt.jpg", "content_type": "image/jpeg"}
     except Exception as e:
         await telegram.send_message(chat_id=chat_id, text=(
             "ስህተት ተፈጥሯል። እንደገና ይሞክሩ። ❌\n\n"
@@ -168,7 +169,8 @@ async def qrcode(update, user):
                 else "\u200F" + "للتأكيد ✅ اضغط /ok\n\nللإلغاء ❌ اضغط /cancel"
             )
         )
-        user["last_data"] = data 
+        user["last_data"] = data
+        user["last_image"] = {"bytes": file, "filename": "receipt.jpg", "content_type": "image/jpeg"}
     except Exception as e:
         await telegram.send_message(chat_id=chat_id, text=(
             "ስህተት ተፈጥሯል። እንደገና ይሞክሩ። ❌" if user.get("language") == "am"
@@ -212,7 +214,8 @@ async def ok(update, user):
 @telegram.command("/cancel")
 async def cancel(update, user):
     chat_id = update["message"]["chat"]["id"]
-    user["last_data"] = None 
+    user["last_data"] = None
+    user["last_image"] = None
 
     is_language_missing = await check_language("/cancel", chat_id, user, update)
     if is_language_missing:

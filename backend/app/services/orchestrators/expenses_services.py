@@ -5,7 +5,7 @@ from app.database.services import create_expense_db, delete_expense_db, delete_e
 
 from app.database.setup import get_db
 from app.services.orchestrators.contact_services import resolve_vendor
-from app.services.zoho.modules.expenses import create_expense_in_zoho, delete_expense_in_zoho
+from app.services.zoho.modules.expenses import create_expense_in_zoho, delete_expense_in_zoho, attach_expense_receipt
 from app.database.models import Expense
 
 import asyncio
@@ -25,7 +25,12 @@ def save_expense_to_db(db, expense: dict):
         )
     )
     
-async def create_expense(expense: CreateExpenseZoho):
+async def create_expense(
+    expense: CreateExpenseZoho,
+    image_bytes: bytes = None,
+    image_filename: str = None,
+    image_content_type: str = None,
+):
     print("- Creating Expense...")
     # Intiate database connection
     db = next(get_db())
@@ -40,6 +45,18 @@ async def create_expense(expense: CreateExpenseZoho):
     zoho_expense = await create_expense_in_zoho(expense, vendor["contact_id"])
     if not zoho_expense["ok"]:
         return zoho_expense
+
+    # Attach the scanned receipt image, if one was provided — best-effort,
+    # since the expense record itself is already created at this point
+    if image_bytes:
+        receipt = await attach_expense_receipt(
+            expense_id=zoho_expense["expense"]["expense_id"],
+            image_bytes=image_bytes,
+            filename=image_filename or "receipt.jpg",
+            content_type=image_content_type or "image/jpeg",
+        )
+        if not receipt["ok"]:
+            print(" * Warning: expense created but receipt attach failed:", receipt["error"])
 
     # Save Expense to Database
     saved = save_expense_to_db(db, zoho_expense["expense"])

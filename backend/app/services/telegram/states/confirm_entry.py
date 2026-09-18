@@ -14,6 +14,7 @@ async def confirm_entry(update, user):
         return
     is_amharic = user.get("language") == "am"
     data = user.get("last_data")
+    image = user.get("last_image")
     user["state"] = None
     if not data:
         await telegram.send_message(chat_id=chat_id, text=(
@@ -23,13 +24,18 @@ async def confirm_entry(update, user):
     if "reference_number" not in data:
         data["reference_number"] = text
     try:
-        expense = await create_expense(expense=CreateExpenseZoho(
-            tax_reg_no=data["tax_reg_no"],
-            contact_name=data["contact_name"],
-            amount=data["amount"],
-            reference_number=data["reference_number"],
-            date=data["date"].split("T")[0]
-        ))
+        expense = await create_expense(
+            expense=CreateExpenseZoho(
+                tax_reg_no=data["tax_reg_no"],
+                contact_name=data["contact_name"],
+                amount=data["amount"],
+                reference_number=data["reference_number"],
+                date=data["date"].split("T")[0]
+            ),
+            image_bytes=image["bytes"] if image else None,
+            image_filename=image["filename"] if image else None,
+            image_content_type=image["content_type"] if image else None,
+        )
         print("Expense: ", expense)
         error = expense.get("error", "")
         if isinstance(error, str) and error.startswith("Expense already exists"):
@@ -55,3 +61,4 @@ async def confirm_entry(update, user):
         return
     finally:
         user["last_data"] = None
+        user["last_image"] = None

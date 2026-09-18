@@ -147,7 +147,7 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
     response = await zoho_client.request(
         method="POST",
         path="/expenses",
-        json=expense.model_dump(),
+        json=expense.model_dump(exclude={"upload_id"}),
         include_org_id=True
     )
     
@@ -170,6 +170,30 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
     )
 
     return {"ok": True, "expense": filtered}
+
+
+async def attach_expense_receipt(expense_id: str, image_bytes: bytes, filename: str, content_type: str):
+    print("- Attaching Receipt to Expense in Zoho...")
+    try:
+        response = await zoho_client.request(
+            method="POST",
+            path=f"/expenses/{expense_id}/receipt",
+            include_org_id=True,
+            files={"receipt_attachment": (filename, image_bytes, content_type)},
+        )
+        data = response.json()
+
+        if data.get("code") != 0:
+            print("- Failed to attach receipt to expense in Zoho.")
+            return {"ok": False, "error": data}
+
+        return {"ok": True}
+    except HTTPStatusError as e:
+        print(e)
+        return {
+            "ok": False,
+            "error": e
+        }
 
 
 async def delete_expense_in_zoho(expense_id: str):
