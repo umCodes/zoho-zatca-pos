@@ -1,4 +1,5 @@
 import base64
+import uuid
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -12,6 +13,11 @@ from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.utils.qr_decoder import decode_qr_code
 
 router = APIRouter()
+
+# Holds receipt image bytes between POST /upload (extraction) and POST
+# /expenses (creation), keyed by upload_id — the two are separate requests
+# once the user has reviewed/edited the extracted fields in between.
+_pending_receipts: dict[str, tuple[bytes, str, str]] = {}
 
 
 class DeleteExpensesRequest(BaseModel):
@@ -34,10 +40,12 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
     the expense confirmation form, mirroring the Telegram bot's /qrcode and
     /full_ai_scan commands."""
     contents = await file.read()
+    upload_id = uuid.uuid4().hex
+    _pending_receipts[upload_id] = (contents, file.filename or "receipt.jpg", file.content_type or "image/jpeg")
 
     qr_data = decode_qr_code(contents).get("data")
     if qr_data:
-        return {"ok": True, "source": "qr", "data": qr_data}
+        return {"ok": True, "source": "qr", "data": qr_data, "upload_id": upload_id}
 
     b64_data = base64.b64encode(contents).decode("utf-8")
     try:
@@ -64,14 +72,22 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
             detail={"ok": False, "error": {"code": "no_data", "message": "Could not extract invoice data from image"}},
         )
 
-    return {"ok": True, "source": "ai", "data": data}
+    return {"ok": True, "source": "ai", "data": data, "upload_id": upload_id}
 
 
 @router.post("/expenses")
 async def submit_expense(expense: CreateExpenseZoho):
     """Creates the (user-confirmed/edited) purchase invoice as a Zoho expense —
-    resolving or creating the vendor, then mirroring the expense into Postgres."""
-    result = await create_expense(expense=expense)
+    resolving or creating the vendor, then mirroring the expense into Postgres.
+    If `upload_id` matches a receipt from a prior POST /upload, that image is
+    attached to the created expense in Zoho."""
+    image = _pending_receipts.pop(expense.upload_id, None) if expense.upload_id else None
+    result = await create_expense(
+        expense=expense,
+        image_bytes=image[0] if image else None,
+        image_filename=image[1] if image else None,
+        image_content_type=image[2] if image else None,
+    )
     if not result.get("ok"):
         raise HTTPException(status_code=409, detail=result)
     return result

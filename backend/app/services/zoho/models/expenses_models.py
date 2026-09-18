@@ -19,6 +19,10 @@ class CreateExpenseZoho(BaseModel):
     date: str
     vendor_id: Optional[str] = None
 
+    # Correlates this expense with a previously-uploaded receipt image
+    # (see POST /upload) — never sent to Zoho itself.
+    upload_id: Optional[str] = None
+
 
     @model_validator(mode="after")
     def set_vat_fields(self) -> "CreateExpenseZoho":
