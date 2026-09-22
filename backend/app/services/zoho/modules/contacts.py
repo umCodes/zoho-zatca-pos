@@ -148,9 +148,14 @@ async def get_customer(id: str) -> dict:
 
 async def create_customer_detailed_in_zoho(customer: CreateCustomerDetailedZoho) -> dict:
     """Creates a customer with the full bilingual ZATCA field set (name, VAT,
-    CRN via buyer_id_label/value, and a fully bilingual billing address) —
-    every field here is a verified native Zoho field, not a custom field."""
+    CRN via buyer_id_label/value, and a fully bilingual billing and shipping
+    address) — every field here is a verified native Zoho field, not a
+    custom field."""
     print("- Creating detailed Customer in Zoho...")
+    # No separate shipping-address input exists in this app, so shipping
+    # mirrors billing — sent as its own bilingual object (not just a Zoho
+    # fallback) so both addresses are actually populated on the contact.
+    address = customer.billing_address.to_zoho(customer.country_code, phone=customer.phone)
     payload = {
         "contact_type": "customer",
         "contact_name": customer.contact_name,
@@ -163,7 +168,8 @@ async def create_customer_detailed_in_zoho(customer: CreateCustomerDetailedZoho)
         "buyer_id_value": customer.buyer_id_value,
         # Phone only persists via billing_address.phone (verified against the
         # live API — there is no top-level contact phone field on create).
-        "billing_address": customer.billing_address.to_zoho(customer.country_code, phone=customer.phone),
+        "billing_address": address,
+        "shipping_address": address,
     }
 
     # Drop None values — Zoho treats an explicit null differently from an
