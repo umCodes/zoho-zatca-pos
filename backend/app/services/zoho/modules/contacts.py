@@ -158,6 +158,7 @@ async def create_customer_detailed_in_zoho(customer: CreateCustomerDetailedZoho)
         "company_name": customer.contact_name,
         "tax_treatment": customer.tax_treatment,
         "tax_reg_no": customer.tax_reg_no,
+        "place_of_supply": customer.place_of_supply,
         "buyer_id_label": customer.buyer_id_label,
         "buyer_id_value": customer.buyer_id_value,
         # Phone only persists via billing_address.phone (verified against the

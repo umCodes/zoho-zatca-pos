@@ -109,6 +109,7 @@ class CreateCustomerDetailedZoho(BaseModel):
     billing_address: CustomerAddress
 
     country_code: str = "SA"
+    place_of_supply: str = "SA"
 
     @property
     def buyer_id_label(self) -> str:

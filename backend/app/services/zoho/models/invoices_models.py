@@ -13,7 +13,7 @@ class LineItem(BaseModel):
 class Invoice(BaseModel):
     customer_id: str
     date: Optional[str] = None
-    place_of_supply: Optional[str] = None
+    place_of_supply: str = "SA"
     tax_treatment: Optional[str] = None
     billing_address_id: Optional[str] = None
     shipping_address_id: Optional[str] = None
