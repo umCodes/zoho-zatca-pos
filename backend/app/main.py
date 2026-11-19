@@ -5,6 +5,7 @@ from app.routes import health, invoices, telegram, items, pdf, check_password, f
 
 from app.middlewares.token_refresh import token_refresh_middleware
 from app.middlewares.validate_password import validate_password
+from app.mcp_server.http import mount_mcp
 
 from app.core.config import ENV, FRONTEND_DOMAIN, ADMIN_DOMAIN
 from app.routes import fatoora
@@ -44,3 +45,6 @@ app.include_router(router=pdf.router)
 app.include_router(router=fatoora.router)
 app.include_router(router=customers.router)
 app.include_router(router=expenses.router)
+
+# Purchases MCP server at /mcp (bearer-token auth, see app/mcp_server/)
+mount_mcp(app)

@@ -13,6 +13,9 @@ A pull job (`GET /push-invoices`) fetches recent Zoho invoices and submits each 
 **3. Expense capture (Telegram bot)**
 Staff send a photo of a purchase receipt to a Telegram bot. The bot reads it either by decoding the receipt's ZATCA QR code or, if that's not usable, by running it through Gemini vision OCR. It shows back the parsed vendor, amount, date, and VAT number for confirmation (in Arabic or Amharic), then creates the vendor (if new) and the expense in Zoho Books, mirroring both into a local Postgres database to prevent duplicates.
 
+**4. Purchases MCP server**
+The purchase-recording flow is also exposed as an [MCP](https://modelcontextprotocol.io) server, so an AI assistant (Claude, etc.) can scan receipts, record purchases and answer questions like "how much did we spend with Panda last month?". See [MCP server](#mcp-server) below.
+
 ## How it's put together
 
 - **Backend** — FastAPI (Python), deployed on Render. All Zoho Books access goes through one internal client (`services/zoho/`); ZATCA is never called directly — submission happens via Zoho's `/einvoice/push` endpoint. A single shared password (`x-password` header) gates the API instead of per-user accounts.
@@ -60,6 +63,35 @@ npm install
 npm run dev
 ```
 Requires `VITE_API_URL` pointing at the backend.
+
+## MCP server
+
+Lives in `backend/app/mcp_server/` and reuses the same orchestrators as the Telegram bot and admin app, so vendor resolution, duplicate checks, receipt attachment and the Postgres mirror behave identically.
+
+| Tool | What it does |
+|---|---|
+| `list_purchases` | Recorded purchases, newest first; filter by vendor name/VAT number and date range |
+| `get_purchase` | One purchase from the local records plus its current state in Zoho |
+| `purchases_summary` | Totals and counts over a period, grouped by vendor or month |
+| `list_vendors` | Known vendors with purchase count and total spent |
+| `scan_receipt` | Extracts fields from a receipt (base64 or https URL) via ZATCA QR, falling back to OCR; returns an `upload_id` |
+| `record_purchase` | Creates the expense in Zoho (vendor found by VAT number or created), attaching the scanned receipt |
+| `delete_purchases` | Deletes expenses from Zoho and the local records (destructive) |
+
+Reads come from the Postgres mirror. Writes go to Zoho Books.
+
+**Remote (Streamable HTTP)** — served by the API at `POST /mcp`. Set `MCP_API_KEY` in the environment; clients send `Authorization: Bearer <MCP_API_KEY>`. If `MCP_API_KEY` is unset, the endpoint returns 503. For example, with Claude Code:
+```
+claude mcp add --transport http purchases https://<your-backend>/mcp --header "Authorization: Bearer <MCP_API_KEY>"
+```
+
+**Local (stdio)** — uses the backend's `.env`:
+```
+cd backend
+python -m app.mcp_server
+```
+
+Tests: `cd backend && python -m pytest tests` (SQLite stands in for Postgres; Zoho and OCR calls are stubbed).
 
 ## Known gaps
 

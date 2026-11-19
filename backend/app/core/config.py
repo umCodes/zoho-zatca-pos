@@ -36,3 +36,5 @@ def get_settings():
         "refresh_token": os.getenv("REFRESH_TOKEN"),
         "organization_id": os.getenv("ORGANIZATION_ID"),
     }
+# Bearer token for the /mcp endpoint (purchases MCP server). Unset = disabled.
+MCP_API_KEY = os.getenv("MCP_API_KEY")
