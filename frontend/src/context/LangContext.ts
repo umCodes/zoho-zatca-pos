@@ -154,9 +154,6 @@ export interface Translations {
   scanningDocument: string;
   scanDocumentError: string;
   scanDocumentSuccess: string;
-  scanningDocuments: string;
-  scanDocumentPartial: string;
-  scanTooManyFiles: string;
   modalSave: string;
   modalSaving: string;
   modalCancel: string;
@@ -303,9 +300,6 @@ const en: Translations = {
   scanningDocument: "Scanning document…",
   scanDocumentError: "Couldn't read that document. Please fill the form manually.",
   scanDocumentSuccess: "Fields filled from document — please review before saving.",
-  scanningDocuments: "Scanning {n} documents…",
-  scanDocumentPartial: "Fields filled — please review. Couldn't read:",
-  scanTooManyFiles: "Too many files — select up to {max} at once.",
   modalSave: "Save Customer",
   modalSaving: "Saving…",
   modalCancel: "Cancel",
@@ -452,9 +446,6 @@ const ar: Translations = {
   scanningDocument: "جارٍ مسح المستند…",
   scanDocumentError: "تعذّرت قراءة المستند. يرجى تعبئة النموذج يدوياً.",
   scanDocumentSuccess: "تم تعبئة الحقول من المستند — يرجى المراجعة قبل الحفظ.",
-  scanningDocuments: "جارٍ مسح {n} مستندات…",
-  scanDocumentPartial: "تم تعبئة الحقول — يرجى المراجعة. تعذّرت قراءة:",
-  scanTooManyFiles: "عدد الملفات كبير — اختر {max} ملفات كحد أقصى.",
   modalSave: "حفظ العميل",
   modalSaving: "جارٍ الحفظ…",
   modalCancel: "إلغاء",
@@ -601,9 +592,6 @@ const am: Translations = {
   scanningDocument: "ሰነድ እየተቃኘ ነው…",
   scanDocumentError: "ሰነዱን ማንበብ አልተቻለም። እባክዎ ቅጹን በእጅ ይሙሉ።",
   scanDocumentSuccess: "መስኮች ከሰነዱ ተሞልተዋል — ከማስቀመጥዎ በፊት እባክዎ ይገምግሙ።",
-  scanningDocuments: "{n} ሰነዶች እየተቃኙ ነው…",
-  scanDocumentPartial: "መስኮች ተሞልተዋል — እባክዎ ይገምግሙ። ማንበብ ያልተቻለው፦",
-  scanTooManyFiles: "በጣም ብዙ ፋይሎች — በአንድ ጊዜ እስከ {max} ይምረጡ።",
   modalSave: "ደንበኛ አስቀምጥ",
   modalSaving: "እየተቀመጠ ነው…",
   modalCancel: "ተወው",
