@@ -1,4 +1,3 @@
-import asyncio
 import httpx
 from app.utils.json import parse_json_response
 from app.core.config import MISTRAL_API_KEY
@@ -8,9 +7,6 @@ OCR_MODEL = "mistral-ocr-latest"
 OCR_URL = "https://api.mistral.ai/v1/ocr"
 
 REQUEST_TIMEOUT = httpx.Timeout(60.0, connect=10.0)
-
-# Max simultaneous OCR requests for a multi-document scan.
-OCR_CONCURRENCY = 3
 
 
 class ScanOverloadedError(Exception):
@@ -118,55 +114,6 @@ async def process_customer_document(img: str, mime_type: str = "image/jpeg"):
     if isinstance(res, Exception):
         return res
     return parse_json_response(res)
-
-
-MULTI_DOCUMENT_NOTE = """
-    The OCR text below comes from SEVERAL documents/pages of the SAME business
-    (e.g. a CR certificate + National Address certificate + VAT certificate),
-    separated by "=== DOCUMENT n ===" markers. Merge them into ONE result:
-    take each field from whichever document states it; when documents
-    disagree, prefer the one that is the authoritative source for that field
-    (VAT certificate for tax_reg_no, CR certificate for buyer_id_value and the
-    business name, National Address certificate for billing_address).
-"""
-
-
-async def process_customer_documents(docs: list[tuple[str, str]]):
-    """OCRs several customer documents (as (base64, mime_type) pairs) and
-    merges them into a single customer record with ONE LLM call.
-
-    The OCR calls run concurrently but capped, so a batch of photos never
-    holds more than a few in-flight request bodies at once — keeps memory
-    flat on small hosts. Documents that fail OCR are skipped; the result
-    reports which ones (by index) so the UI can say so."""
-    sem = asyncio.Semaphore(OCR_CONCURRENCY)
-
-    async def ocr_one(img: str, mime: str):
-        async with sem:
-            return await run_ocr(img, mime_type=mime)
-
-    results = await asyncio.gather(*(ocr_one(img, mime) for img, mime in docs))
-
-    texts: list[str] = []
-    failed: list[int] = []
-    for i, r in enumerate(results):
-        if isinstance(r, Exception) or not str(r).strip():
-            failed.append(i)
-        else:
-            texts.append(f"=== DOCUMENT {i + 1} ===\n{r}")
-
-    if not texts:
-        first_error = next((r for r in results if isinstance(r, Exception)), None)
-        return first_error or ValueError("No text could be read from the documents"), failed
-
-    ocr_text = "\n\n".join(texts)
-    prompt = CUSTOMER_DOCUMENT_PROMPT
-    if len(docs) > 1:
-        prompt = MULTI_DOCUMENT_NOTE + prompt
-    res = await open_router(prompt.replace("{ocr_text}", ocr_text))
-    if isinstance(res, Exception):
-        return res, failed
-    return parse_json_response(res), failed
 
 
 async def run_ocr(img: str, mime_type: str = "image/jpeg"):
