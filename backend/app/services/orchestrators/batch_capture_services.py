@@ -5,16 +5,12 @@ time and gets back a per-image outcome, so one bad image never stops the
 rest of the batch. Every outcome — including failures — is returned as data
 (never raised), so the caller can show it next to that image.
 
-The server this runs on is small (0.5 CPU / 512 MB), so:
-  * the client shrinks images before sending and, where the browser can,
-    decodes the QR code itself and sends its text (`qr_text`) — then the
-    OpenCV decode here is skipped entirely;
-  * the OpenCV decode, when it does run, is serialized behind a lock and
-    run in a worker thread, so concurrent requests can't stack up decoded
-    bitmaps in memory or block the event loop;
-  * OCR and field extraction happen at Mistral/OpenRouter, not here.
+QR codes are deliberately not read here: the ZATCA QR never carries the
+invoice number, so the AI scan is needed for every photo anyway and reads
+all the other fields too. Skipping the OpenCV decode also keeps the work
+off this small server (0.5 CPU / 512 MB) — OCR and field extraction happen
+at Mistral/OpenRouter. The client shrinks images before sending.
 """
-import asyncio
 import base64
 import re
 
@@ -23,10 +19,6 @@ from pydantic import ValidationError
 from app.services.mistral_services import ScanOverloadedError, ScanTimeoutError, process_img
 from app.services.orchestrators.expenses_services import create_expense
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
-from app.utils.qr_decoder import decode_qr_code, extract_info
-
-# One OpenCV decode at a time across the whole process.
-_qr_decode_lock = asyncio.Semaphore(1)
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -47,29 +39,10 @@ def _error_message(error) -> str:
     return str(error)
 
 
-def _qr_from_text(qr_text: str | None) -> dict | None:
-    if not qr_text:
-        return None
-    try:
-        data = extract_info(qr_text)
-    except Exception as e:
-        print(f" * Client-sent QR text could not be parsed: {e}")
-        return None
-    return data if (data.get("amount") or data.get("tax_reg_no")) else None
-
-
-async def _qr_from_image(contents: bytes) -> dict | None:
-    async with _qr_decode_lock:
-        data = (await asyncio.to_thread(decode_qr_code, contents)).get("data")
-    return data if data and (data.get("amount") or data.get("tax_reg_no")) else None
-
-
 async def scan_and_record_expense(
     contents: bytes,
     filename: str,
     content_type: str,
-    qr_text: str | None = None,
-    qr_checked: bool = False,
     fields: dict | None = None,
 ) -> dict:
     if fields:
@@ -79,15 +52,7 @@ async def scan_and_record_expense(
         data = {k: v for k, v in data.items() if v not in (None, "")}
         return await _record(data, "manual", None, contents, filename, content_type)
 
-    # 1. QR code — ZATCA QR gives vendor, VAT number, date and total, but
-    #    never the invoice number.
-    qr_data = _qr_from_text(qr_text)
-    if qr_data is None and not qr_checked:
-        # Only decode on the server when the client couldn't look itself
-        # (e.g. browsers without BarcodeDetector, like iOS Safari).
-        qr_data = await _qr_from_image(contents)
-
-    # 2. AI scan — needed for the invoice number even when the QR worked.
+    # AI scan — reads every field, including the invoice number.
     ai_data: dict = {}
     ai_error: tuple[str, str] | None = None
     try:
@@ -102,14 +67,9 @@ async def scan_and_record_expense(
     except Exception as e:
         ai_error = ("generic", f"Invoice scan failed: {e}")
 
-    # QR values are read straight off the signed code, so they win over AI.
     data = {k: ai_data.get(k) for k in ("contact_name", "tax_reg_no", "amount", "reference_number", "date")}
-    if qr_data:
-        for key in ("contact_name", "tax_reg_no", "amount", "date"):
-            if qr_data.get(key):
-                data[key] = qr_data[key]
     data = {k: v for k, v in data.items() if v not in (None, "")}
-    source = "qr" if qr_data else ("ai" if ai_data else None)
+    source = "ai" if ai_data else None
     return await _record(data, source, ai_error, contents, filename, content_type)
 
 

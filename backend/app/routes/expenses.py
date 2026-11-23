@@ -93,8 +93,6 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
 @router.post("/expenses/auto")
 async def scan_and_record(
     file: UploadFile = File(...),
-    qr_text: str | None = Form(None),
-    qr_checked: bool = Form(False),
     fields: str | None = Form(None),
 ):
     """Scans one invoice image and records it in a single step — used by
@@ -105,11 +103,10 @@ async def scan_and_record(
       {"status": "recorded" | "duplicate" | "failed", "source", "data",
        "expense"?, "error"?: {"code", "message"}}
 
-    Optional `qr_text` is the QR code's raw text, decoded on the client;
-    `qr_checked` says the client already looked for a QR code, so the
-    server skips its own (CPU-heavy) OpenCV decode. Optional `fields` (JSON)
-    are user-corrected invoice fields for an image that failed before — they
-    are recorded as-is, with no scan."""
+    QR codes are not read here (the ZATCA QR has no invoice number, so the
+    AI scan reads every field). Optional `fields` (JSON) are user-corrected
+    invoice fields for an image that failed before — they are recorded
+    as-is, with no scan."""
     try:
         parsed_fields = json.loads(fields) if fields else None
     except ValueError:
@@ -132,8 +129,6 @@ async def scan_and_record(
         contents=contents,
         filename=file.filename or "receipt.jpg",
         content_type=file.content_type or "image/jpeg",
-        qr_text=qr_text,
-        qr_checked=qr_checked,
         fields=parsed_fields,
     )
 
