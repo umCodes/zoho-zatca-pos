@@ -11,6 +11,7 @@ import {
   type CustomerAddressForm,
 } from "../types";
 import { CRN_PATTERN, VAT_PATTERN } from "../utils/customerValidation";
+import { compressImages } from "../utils/compressImage";
 
 interface CreateCustomerModalProps {
   isOpen: boolean;
@@ -76,6 +77,8 @@ type TranslatableFormField = "name";
 type SectionKey = "identification" | "address";
 
 const DEBOUNCE_MS = 700;
+// Must match MAX_SCAN_FILES on the backend (/customers/scan).
+const MAX_SCAN_FILES = 10;
 
 export default function CreateCustomerModal({
   isOpen,
@@ -95,6 +98,7 @@ export default function CreateCustomerModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanNotice, setScanNotice] = useState<{ text: string; isError: boolean } | null>(null);
+  const [scanCount, setScanCount] = useState(0);
   const [translating, setTranslating] = useState<
     Partial<Record<TranslatablePair | TranslatableFormField, boolean>>
   >({});
@@ -248,13 +252,19 @@ export default function CreateCustomerModal({
     fileInputRef.current?.click();
   }
 
-  async function handleScanFile(file: File) {
+  async function handleScanFiles(picked: File[]) {
     const target = scanTargetRef.current;
+    if (picked.length > MAX_SCAN_FILES) {
+      setScanNotice({ text: t.scanTooManyFiles.replace("{max}", String(MAX_SCAN_FILES)), isError: true });
+      return;
+    }
     setScanning(true);
     setScanNotice(null);
+    setScanCount(picked.length);
     try {
+      const files = await compressImages(picked);
       const body = new FormData();
-      body.append("file", file);
+      for (const f of files) body.append("files", f, f.name);
       const res = await fetch(`${apiUrl}/customers/scan`, {
         method: "POST",
         headers: { "x-password": password || "" },
@@ -288,12 +298,19 @@ export default function CreateCustomerModal({
         setExpanded((prev) => ({ ...prev, address: true }));
       }
 
-      setScanNotice({ text: t.scanDocumentSuccess, isError: false });
+      const failed: number[] = Array.isArray(result.failed) ? result.failed : [];
+      if (failed.length > 0) {
+        const names = failed.map((i) => picked[i]?.name ?? `#${i + 1}`).join(", ");
+        setScanNotice({ text: `${t.scanDocumentPartial} ${names}`, isError: true });
+      } else {
+        setScanNotice({ text: t.scanDocumentSuccess, isError: false });
+      }
     } catch (err) {
       console.error("Document scan failed:", err);
       setScanNotice({ text: t.scanDocumentError, isError: true });
     } finally {
       setScanning(false);
+      setScanCount(0);
     }
   }
 
@@ -351,10 +368,11 @@ export default function CreateCustomerModal({
           ref={fileInputRef}
           type="file"
           accept="image/*,.pdf,application/pdf"
+          multiple
           className="ccm-file-input"
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleScanFile(file);
+            const picked = Array.from(e.target.files ?? []);
+            if (picked.length > 0) handleScanFiles(picked);
             e.target.value = "";
           }}
         />
@@ -370,7 +388,11 @@ export default function CreateCustomerModal({
               title={t.scanDocumentBtn}
             >
               <Upload size={13} />
-              {scanning ? t.scanningDocument : t.scanDocumentBtn}
+              {scanning
+                ? scanCount > 1
+                  ? t.scanningDocuments.replace("{n}", String(scanCount))
+                  : t.scanningDocument
+                : t.scanDocumentBtn}
             </button>
             <button type="button" className="ccm-close" onClick={resetAndClose} aria-label={t.modalCancel}>
               <X size={18} />
