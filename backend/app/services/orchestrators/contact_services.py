@@ -1,3 +1,4 @@
+from sqlalchemy.orm import Session
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.services.zoho.models.contacts_models import CreateContactZoho
 

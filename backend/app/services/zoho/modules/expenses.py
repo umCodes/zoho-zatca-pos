@@ -77,7 +77,13 @@ async def is_expense_exists(expense: CreateExpenseZoho):
             },
         )
 
-        expenses = response.json().get("expenses")
+        # Zoho's filter is a substring match ("12" also matches "1234"), so
+        # only an exact (case-insensitive) reference match counts as a duplicate.
+        wanted = (expense.reference_number or "").strip().lower()
+        expenses = [
+            e for e in (response.json().get("expenses") or [])
+            if (e.get("reference_number") or "").strip().lower() == wanted
+        ]
         if expenses:
             return {
                 "ok": True,
@@ -130,17 +136,24 @@ async def create_expense_in_zoho(expense: CreateExpenseZoho, vendor_id: str):
     expense.date = expense.date.split("T")[0]
     # Check by description fingerprint first (higher confidence)
     is_exists_by_desc = await is_expense_exists_by_description(expense)
+    if is_exists_by_desc and not is_exists_by_desc.get("ok"):
+        # The lookup itself failed — not a duplicate, so don't report it as one.
+        return {"ok": False, "error": f"Could not check Zoho for duplicates: {is_exists_by_desc.get('error')}"}
     if is_exists_by_desc:
         return {
             "ok": False,
+            "duplicate": True,
             "error": "Expense already exists (matched by description fingerprint)"
         }
 
     # Check by reference_number second (manual entry, lower confidence)
     is_exists = await is_expense_exists(expense)
+    if is_exists and not is_exists.get("ok"):
+        return {"ok": False, "error": f"Could not check Zoho for duplicates: {is_exists.get('error')}"}
     if is_exists:
         return {
             "ok": False,
+            "duplicate": True,
             "error": "Expense already exists (matched by reference_number)"
         }
 

@@ -58,7 +58,7 @@ def create_expense_db(db: Session, expense: ExpenseCreate):
     
     if exists:
         print(" * Expense already exists.")
-        return {"error": "Expense already exists", "source": "db", "expense_id": expense.expense_id}
+        return {"ok": False, "duplicate": True, "error": "Expense already exists", "source": "db", "expense_id": expense.expense_id}
     
     db_expense = Expense(**expense.model_dump())
     db.add(db_expense)

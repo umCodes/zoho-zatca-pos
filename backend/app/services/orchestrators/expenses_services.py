@@ -1,7 +1,7 @@
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 
 from app.database.schemas import ExpenseCreate
-from app.database.services import create_expense_db, delete_expense_db, delete_expenses_db, get_expense_db
+from app.database.services import create_expense_db, delete_expense_db, delete_expenses_db, get_expense_db, get_expense_by_reference_number_db
 
 from app.database.setup import get_db
 from app.services.orchestrators.contact_services import resolve_vendor
@@ -35,6 +35,16 @@ async def create_expense(
     # Intiate database connection
     db = next(get_db())
     expense.date = expense.date.split("T")[0]
+
+    # Cheap local duplicate check before any Zoho call — Zoho stores the
+    # reference lowercased, and so does our mirror. Catching it here also
+    # avoids creating a Zoho expense that the DB insert would then reject.
+    if expense.reference_number and get_expense_by_reference_number_db(
+        db=db, reference_number=expense.reference_number.lower()
+    ):
+        print(" * Expense already exists in Database (by reference_number)")
+        return {"ok": False, "duplicate": True, "error": "Expense already exists", "source": "db"}
+
     # Create or Find Vendor
     vendor = await resolve_vendor(db, expense)
     print("vendor: ", json.dumps(vendor, indent=2))

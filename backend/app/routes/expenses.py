@@ -1,6 +1,7 @@
+import json
 import base64
 import uuid
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,7 @@ from app.database.schemas import ExpenseResponse
 from app.database.services import list_expenses_db
 from app.database.setup import get_db
 from app.services.mistral_services import ScanOverloadedError, ScanTimeoutError, process_img
+from app.services.orchestrators.batch_capture_services import scan_and_record_expense
 from app.services.orchestrators.expenses_services import create_expense, delete_expense, delete_expenses
 from app.services.zoho.models.expenses_models import CreateExpenseZoho
 from app.utils.qr_decoder import decode_qr_code
@@ -18,6 +20,19 @@ router = APIRouter()
 # /expenses (creation), keyed by upload_id — the two are separate requests
 # once the user has reviewed/edited the extracted fields in between.
 _pending_receipts: dict[str, tuple[bytes, str, str]] = {}
+# Receipts whose scan is never confirmed would otherwise pile up in RAM
+# forever; keep only the most recent ones (dicts preserve insertion order).
+_MAX_PENDING_RECEIPTS = 10
+
+# The admin app shrinks images before sending (~0.2–0.5 MB), so anything
+# far larger is refused rather than held in a 512 MB server's memory.
+MAX_SCAN_UPLOAD_BYTES = 8 * 1024 * 1024
+
+
+def _remember_receipt(upload_id: str, receipt: tuple[bytes, str, str]) -> None:
+    _pending_receipts[upload_id] = receipt
+    while len(_pending_receipts) > _MAX_PENDING_RECEIPTS:
+        _pending_receipts.pop(next(iter(_pending_receipts)))
 
 
 class DeleteExpensesRequest(BaseModel):
@@ -41,7 +56,7 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
     /full_ai_scan commands."""
     contents = await file.read()
     upload_id = uuid.uuid4().hex
-    _pending_receipts[upload_id] = (contents, file.filename or "receipt.jpg", file.content_type or "image/jpeg")
+    _remember_receipt(upload_id, (contents, file.filename or "receipt.jpg", file.content_type or "image/jpeg"))
 
     qr_data = decode_qr_code(contents).get("data")
     if qr_data:
@@ -73,6 +88,54 @@ async def upload_purchase_invoice(file: UploadFile = File(...)):
         )
 
     return {"ok": True, "source": "ai", "data": data, "upload_id": upload_id}
+
+
+@router.post("/expenses/auto")
+async def scan_and_record(
+    file: UploadFile = File(...),
+    qr_text: str | None = Form(None),
+    qr_checked: bool = Form(False),
+    fields: str | None = Form(None),
+):
+    """Scans one invoice image and records it in a single step — used by
+    the admin app's multi-image upload, which sends images one at a time.
+
+    Always answers 200 with a per-image outcome rather than an HTTP error,
+    so one bad image never stops the rest of the batch:
+      {"status": "recorded" | "duplicate" | "failed", "source", "data",
+       "expense"?, "error"?: {"code", "message"}}
+
+    Optional `qr_text` is the QR code's raw text, decoded on the client;
+    `qr_checked` says the client already looked for a QR code, so the
+    server skips its own (CPU-heavy) OpenCV decode. Optional `fields` (JSON)
+    are user-corrected invoice fields for an image that failed before — they
+    are recorded as-is, with no scan."""
+    try:
+        parsed_fields = json.loads(fields) if fields else None
+    except ValueError:
+        parsed_fields = None
+    if parsed_fields is not None and not isinstance(parsed_fields, dict):
+        parsed_fields = None
+    contents = await file.read(MAX_SCAN_UPLOAD_BYTES + 1)
+    await file.close()
+    if len(contents) > MAX_SCAN_UPLOAD_BYTES:
+        return {
+            "status": "failed", "source": None, "data": {},
+            "error": {"code": "too_large", "message": "Image is too large (max 8 MB)."},
+        }
+    if not contents:
+        return {
+            "status": "failed", "source": None, "data": {},
+            "error": {"code": "empty", "message": "The image was empty."},
+        }
+    return await scan_and_record_expense(
+        contents=contents,
+        filename=file.filename or "receipt.jpg",
+        content_type=file.content_type or "image/jpeg",
+        qr_text=qr_text,
+        qr_checked=qr_checked,
+        fields=parsed_fields,
+    )
 
 
 @router.post("/expenses")
